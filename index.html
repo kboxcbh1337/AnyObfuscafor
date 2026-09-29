@@ -1,0 +1,2629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Any 混淆器——面向程序员的代码混淆工具：标识符重写、控制流变形、字符串加密。一次配置，自动完成。">
+<title>Any 混淆器 — 让你的代码，只有你看得懂</title>
+<style>
+/* ================= 基础 ================= */
+:root{
+  --accent:#0e7a45;
+  --accent-dark:#0a5f36;
+  --ink:#111111;
+  --ink-soft:#555555;
+  --ink-faint:#999999;
+  --line:#eaeaea;
+  --bg:#ffffff;
+  --bg-soft:#fafafa;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,"Liberation Mono","Courier New",monospace;
+  /* 果冻缓动 */
+  --jelly:cubic-bezier(.34,1.56,.64,1);
+  --jelly-soft:cubic-bezier(.22,1.3,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+a{color:inherit;}
+::selection{background:rgba(14,122,69,.16);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth;}
+}
+
+/* ================= 果冻关键帧 ================= */
+@keyframes jelly-pop{
+  0%  {transform:scale(1,1);}
+  28% {transform:scale(1.07,.93);}
+  46% {transform:scale(.96,1.05);}
+  64% {transform:scale(1.02,.98);}
+  82% {transform:scale(.995,1.005);}
+  100%{transform:scale(1,1);}
+}
+@keyframes jelly-in{
+  0%  {opacity:0;transform:translateY(22px) scale(.94);}
+  55% {opacity:1;transform:translateY(-6px) scale(1.015);}
+  75% {transform:translateY(3px) scale(.996);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+@keyframes jelly-squish{
+  0%  {transform:translateY(0) scale(1,1);}
+  35% {transform:translateY(1px) scale(1.04,.94);}
+  70% {transform:translateY(-1px) scale(.98,1.02);}
+  100%{transform:translateY(0) scale(1,1);}
+}
+@keyframes jelly-wobble{
+  0%,100%{transform:rotate(0deg) scale(1);}
+  22%{transform:rotate(-3.5deg) scale(1.06);}
+  48%{transform:rotate(2.6deg) scale(.97);}
+  74%{transform:rotate(-1.4deg) scale(1.02);}
+}
+
+/* ================= 顶部导航 ================= */
+.site-nav{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid var(--line);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;position:relative;}
+.logo{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--ink);background:none;border:0;padding:6px 0;margin:0;cursor:pointer;letter-spacing:.3px;user-select:none;transition:transform .45s var(--jelly),color .2s ease;}
+.logo:hover{color:var(--accent);transform:scale(1.05) rotate(-1deg);}
+.logo:active{animation:jelly-pop .5s var(--jelly);}
+.nav-links{display:flex;gap:26px;}
+.nav-links a{font-size:14px;color:var(--ink-soft);text-decoration:none;padding:6px 0;position:relative;transition:color .18s ease;}
+.nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:2px;height:1.5px;background:var(--accent);transition:right .4s var(--jelly-soft);}
+.nav-links a:hover{color:var(--accent);}
+.nav-links a:hover::after{right:0;}
+.nav-burger{display:none;flex-direction:column;gap:4px;background:none;border:0;padding:8px 4px;cursor:pointer;}
+.burger-bar{display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;transition:transform .42s var(--jelly),opacity .2s ease;}
+.site-nav.open .burger-bar:nth-child(1){transform:translateY(6px) rotate(45deg);}
+.site-nav.open .burger-bar:nth-child(2){opacity:0;}
+.site-nav.open .burger-bar:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+
+/* ================= Hero ================= */
+.hero{padding:116px 24px 104px;text-align:center;}
+.hero-eyebrow{font-family:var(--font-mono);font-size:13px;color:var(--ink-faint);margin:0 0 22px;}
+.caret{display:inline-block;width:8px;height:14px;margin-left:8px;vertical-align:-2px;background:var(--ink);}
+@keyframes caret-blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+.caret{animation:caret-blink 1.1s infinite;}
+.hero h1{font-size:clamp(30px,6vw,54px);font-weight:700;line-height:1.16;letter-spacing:-.5px;margin:0 0 18px;animation:jelly-in .9s var(--jelly) both;}
+.hero-sub{font-size:clamp(15px,2.2vw,17.5px);color:var(--ink-soft);max-width:620px;margin:0 auto 38px;animation:jelly-in .9s .1s var(--jelly) both;}
+.hero-eyebrow{animation:jelly-in .9s .04s var(--jelly) both;}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:jelly-in .9s .2s var(--jelly) both;}
+
+/* ================= 按钮 ================= */
+.btn{display:inline-block;font-size:15px;font-weight:600;padding:12px 26px;border-radius:8px;text-decoration:none;cursor:pointer;border:1px solid transparent;font-family:var(--font-sans);
+  transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .3s ease,transform .45s var(--jelly);
+  will-change:transform;}
+.btn:hover{transform:translateY(-2px) scale(1.02);}
+.btn:active{transform:translateY(0) scale(.95);transition-duration:.08s;}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04);}
+.btn-primary:hover{background:var(--accent-dark);box-shadow:0 8px 20px rgba(14,122,69,.22);}
+.btn-outline{border-color:#d9d9d9;color:var(--ink);background:#fff;}
+.btn-outline:hover{border-color:var(--ink);box-shadow:0 8px 20px rgba(0,0,0,.06);}
+.btn-ghost{border-color:var(--line);color:var(--ink-soft);background:#fff;}
+.btn-ghost:hover{border-color:#999;color:var(--ink);}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
+.btn-block{display:block;text-align:center;margin-top:26px;}
+.jelly-pulse{animation:jelly-pop .55s var(--jelly);}
+
+/* ================= 区块通用 ================= */
+section{padding:112px 0;border-top:1px solid var(--line);scroll-margin-top:76px;}
+.sec-head{margin-bottom:46px;max-width:660px;}
+.sec-kicker{font-family:var(--font-mono);font-size:12px;color:#b5b5b5;letter-spacing:1px;margin-bottom:10px;}
+.sec-head h2{font-size:clamp(24px,4vw,33px);font-weight:700;letter-spacing:-.3px;margin:0 0 12px;}
+.sec-lead{color:var(--ink-soft);margin:0;font-size:16px;}
+
+/* ================= 实时演示 ================= */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.pane-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.pane-head>span:first-child{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);letter-spacing:1px;}
+.pane-head .pane-file{color:#c2c2c2;font-family:var(--font-mono);font-size:11px;margin-left:8px;letter-spacing:0;}
+.pane-tag{font-family:var(--font-mono);font-size:11px;color:#c2c2c2;}
+.code-area{font-family:var(--font-mono);font-size:12.5px;line-height:1.62;color:#333;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;width:100%;height:560px;resize:vertical;display:block;tab-size:4;
+  transition:border-color .25s ease,box-shadow .35s var(--jelly-soft),transform .45s var(--jelly);}
+.code-area:focus{border-color:#bbb;box-shadow:0 0 0 3px rgba(14,122,69,.08);}
+.code-area::placeholder{color:#c2c2c2;}
+#demoOutput{resize:none;color:#3a3a3a;background:#fbfbfc;}
+#demoOutput.pulse{animation:jelly-squish .6s var(--jelly);}
+.copy-btn{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 12px;cursor:pointer;
+  transition:color .15s ease,border-color .15s ease,transform .4s var(--jelly),box-shadow .3s ease;}
+.copy-btn:hover:not([disabled]){color:var(--ink);border-color:#999;transform:translateY(-1px) scale(1.04);}
+.copy-btn:active:not([disabled]){transform:scale(.94);}
+.copy-btn[disabled]{opacity:.4;cursor:default;}
+.demo-actions{display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap;}
+.demo-progress{width:180px;height:3px;background:#ececec;border-radius:2px;overflow:hidden;}
+.demo-progress span{display:block;height:100%;width:100%;background:var(--accent);transform:scaleX(0);transform-origin:0 50%;}
+.demo-progress.on span{transform:scaleX(1);transition:transform 1.05s cubic-bezier(.4,.1,.2,1);}
+.demo-status{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-soft);min-height:1.2em;}
+.demo-status.flash{animation:jelly-pop .5s var(--jelly);}
+.demo-note{margin-top:22px;font-size:12.5px;color:#ababab;line-height:1.8;}
+.demo-note code{font-family:var(--font-mono);font-size:12px;background:var(--bg-soft);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#555;}
+
+/* ================= 混淆手段 ================= */
+.tech-group{margin-bottom:52px;}
+.tech-group:last-child{margin-bottom:0;}
+.tech-group-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line);}
+.tech-group-num{font-family:var(--font-mono);font-size:12px;color:var(--accent);letter-spacing:1px;}
+.tech-group-head h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.2px;}
+.tech-group-head .tech-count{margin-left:auto;font-family:var(--font-mono);font-size:11.5px;color:#bcbcbc;}
+.tech-list{display:grid;gap:12px;}
+.tech{border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:#fff;
+  transition:border-color .25s ease,box-shadow .45s var(--jelly-soft);
+  will-change:transform,opacity;}
+.tech:hover{border-color:#d4d4d4;box-shadow:0 10px 28px rgba(0,0,0,.07);}
+.tech-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:7px;}
+.tech h4{margin:0;font-size:14.5px;font-weight:600;letter-spacing:-.1px;}
+.tech-status{flex:none;font-family:var(--font-mono);font-size:11px;line-height:1.6;padding:1px 9px;border-radius:999px;border:1px solid;white-space:nowrap;
+  transition:transform .45s var(--jelly);}
+.tech:hover .tech-status{transform:scale(1.06);}
+.tech-status.on{color:var(--accent);border-color:rgba(14,122,69,.35);background:rgba(14,122,69,.06);}
+.tech-status.cond{color:#a9660a;border-color:rgba(169,102,10,.35);background:rgba(169,102,10,.06);}
+.tech-status.part{color:#a9660a;border-color:rgba(169,102,10,.35);background:rgba(169,102,10,.06);}
+.tech-status.noop{color:#8d8d8d;border-color:#e0e0e0;background:#fafafa;}
+.tech-impl{font-family:var(--font-mono);font-size:12px;color:#9a9a9a;margin-bottom:9px;word-break:break-word;line-height:1.6;}
+.tech-desc{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.75;}
+.tech-desc code{font-family:var(--font-mono);font-size:12.5px;background:var(--bg-soft);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#444;}
+
+/* ================= 宣传片 ================= */
+.film-stage{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;
+  transition:box-shadow .5s var(--jelly-soft),transform .5s var(--jelly);}
+.film-stage:hover{box-shadow:0 14px 40px rgba(0,0,0,.08);transform:translateY(-2px);}
+#filmCanvas{display:block;width:100%;height:clamp(300px,44vw,430px);}
+.film-actions{display:flex;justify-content:flex-end;margin-top:14px;}
+.film-static{display:none;}
+.fs-panel{flex:1 1 200px;border:1px solid var(--line);border-radius:10px;padding:20px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:170px;}
+.fs-label{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);letter-spacing:1px;}
+.fs-panel pre{font-family:var(--font-mono);font-size:12px;color:#333;margin:0;text-align:left;}
+.fs-logo{font-weight:700;font-size:36px;letter-spacing:-.5px;}
+.fs-caret{display:inline-block;width:8px;height:24px;margin-left:6px;vertical-align:-2px;background:var(--accent);}
+
+/* ================= 价格 ================= */
+.pricing-grid{display:grid;grid-template-columns:1.08fr 1fr;gap:20px;align-items:stretch;}
+.price-card{border:1px solid var(--line);border-radius:12px;padding:30px 28px;display:flex;flex-direction:column;background:#fff;
+  transition:border-color .25s ease,box-shadow .5s var(--jelly-soft);
+  will-change:transform,opacity;}
+.price-card:hover{box-shadow:0 14px 40px rgba(0,0,0,.08);}
+.price-card--featured{border:1px solid #111;}
+.price-card--featured:hover{box-shadow:0 16px 44px rgba(0,0,0,.12);}
+.card-badge{display:inline-block;align-self:flex-start;background:var(--accent);color:#fff;font-size:11px;letter-spacing:2px;padding:3px 11px;border-radius:999px;margin-bottom:16px;
+  transition:transform .5s var(--jelly);}
+.price-card:hover .card-badge{transform:scale(1.08) rotate(-1.5deg);}
+.price-card h3{font-size:18px;font-weight:700;margin:0 0 14px;}
+.price{font-family:var(--font-mono);margin-bottom:18px;}
+.price-num{font-size:40px;font-weight:700;letter-spacing:-1px;display:inline-block;transition:transform .55s var(--jelly);}
+.price-card:hover .price-num{transform:scale(1.05);}
+.price-card--source .price-num{font-size:30px;}
+.price-unit{font-size:13px;color:var(--ink-faint);margin-left:6px;font-family:var(--font-sans);}
+.price-card ul{list-style:none;margin:0 0 8px;padding:0;flex:1;}
+.price-card li{position:relative;padding:7px 0 7px 18px;font-size:14px;color:var(--ink-soft);}
+.price-card li::before{content:"+";position:absolute;left:0;top:7px;font-family:var(--font-mono);color:var(--ink);transition:transform .4s var(--jelly);}
+.price-card li:hover::before{transform:scale(1.5) rotate(90deg);color:var(--accent);}
+.declare{margin-top:18px;background:var(--bg-soft);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 14px;}
+.declare p{margin:0;font-size:12.5px;line-height:1.7;color:var(--ink-soft);}
+.pricing-footnote{margin-top:22px;font-size:12.5px;color:#a6a6a6;}
+
+/* ================= Bug 反馈 ================= */
+#bug .btn-primary{margin-top:6px;}
+
+/* ================= 页脚 ================= */
+.site-footer{border-top:1px solid var(--line);padding:38px 0 46px;}
+.footer-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;}
+.footer-title{font-family:var(--font-mono);font-weight:700;font-size:14px;color:#333;margin-bottom:6px;}
+.footer-meta{font-size:12.5px;color:#9a9a9a;}
+.footer-nav{display:flex;gap:22px;flex-wrap:wrap;}
+.footer-nav a{font-size:12.5px;color:#888;text-decoration:none;transition:color .18s ease,transform .45s var(--jelly);display:inline-block;}
+.footer-nav a:hover{color:var(--accent);transform:translateY(-2px) scale(1.04);}
+
+/* ================= Toast ================= */
+.toast{position:fixed;left:50%;bottom:36px;z-index:100;transform:translate(-50%,10px) scale(.94);background:#111;color:#fff;font-size:13px;line-height:1.5;padding:10px 18px;border-radius:8px;opacity:0;visibility:hidden;pointer-events:none;max-width:min(86vw,440px);text-align:center;
+  transition:opacity .3s ease,transform .55s var(--jelly),visibility .3s;}
+.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0) scale(1);}
+
+/* ================= 果冻滚动揭示 ================= */
+.jelly-pre{opacity:0;}
+.jelly-in{animation:jelly-in .72s var(--jelly) both;}
+
+/* ================= 响应式 ================= */
+@media (max-width:900px){
+  .pricing-grid{grid-template-columns:1fr;}
+}
+@media (max-width:767px){
+  .hero{padding:84px 24px 72px;}
+  section{padding:72px 0;}
+  .sec-head{margin-bottom:34px;}
+  .demo-grid{grid-template-columns:1fr;}
+  .code-area{height:340px;font-size:11.5px;}
+  .nav-burger{display:flex;}
+  .nav-links{position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:8px 24px 16px;visibility:hidden;opacity:0;transform:translateY(-8px);transition:opacity .28s ease,transform .42s var(--jelly),visibility .28s;}
+  .site-nav.open .nav-links{visibility:visible;opacity:1;transform:translateY(0);}
+  .nav-links a{padding:11px 0;border-bottom:1px solid #f4f4f4;}
+  .nav-links a::after{display:none;}
+  .nav-links a:last-child{border-bottom:0;}
+  .footer-inner{flex-direction:column;}
+  .tech{padding:14px 15px;}
+  .tech-top{flex-direction:column;gap:8px;}
+}
+
+/* ================= 减弱动态 ================= */
+@media (prefers-reduced-motion:reduce){
+  .caret{animation:none;opacity:1;}
+  .nav-links{transition:none;}
+  .toast{transition:none;}
+  .film-stage,.film-actions{display:none;}
+  .film-static{display:flex;flex-wrap:wrap;gap:12px;}
+  .jelly-pre{opacity:1;}
+  .jelly-in,.jelly-pulse{animation:none !important;}
+  .hero h1,.hero-sub,.hero-eyebrow,.cta-row{animation:none !important;}
+}
+</style>
+</head>
+<body>
+
+<!-- Any 混淆器 · 单文件落地页 · 所有作者均为kboxcbh -->
+
+<!-- ===== 1. 顶部导航 ===== -->
+<header class="site-nav" id="siteNav">
+  <div class="wrap nav-inner">
+    <button class="logo" id="logoBtn" type="button" aria-label="Any 混淆器">Any 混淆器</button>
+    <nav class="nav-links" id="navMenu" aria-label="主导航">
+      <a href="#demo">实时演示</a>
+      <a href="#techniques">混淆手段</a>
+      <a href="#film">宣传片</a>
+      <a href="#pricing">价格</a>
+      <a href="#bug">Bug 反馈</a>
+    </nav>
+    <button class="nav-burger" id="navBurger" type="button" aria-label="展开菜单" aria-expanded="false" aria-controls="navMenu">
+      <span class="burger-bar"></span><span class="burger-bar"></span><span class="burger-bar"></span>
+    </button>
+  </div>
+</header>
+
+<main>
+
+<!-- ===== 2. Hero ===== -->
+<section class="hero" id="hero" style="border-top:0;">
+  <p class="hero-eyebrow">$ any obfuscate ./src --level=paranoid<span class="caret" aria-hidden="true"></span></p>
+  <h1>让你的代码，只有你看得懂</h1>
+  <p class="hero-sub">标识符重写、控制流变形、字符串加密。Any 混淆器负责把代码变成没人想读的样子——顺便，让它照常运行。</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="#demo" data-jelly>查看实时演示</a>
+    <a class="btn btn-outline" href="#pricing" data-jelly>查看价格</a>
+  </div>
+</section>
+
+<!-- ===== 3. 实时演示：Fake.py → Fake-obf.py ===== -->
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">// demo</div>
+      <h2>实时演示</h2>
+      <p class="sec-lead">左边是原始源码 <code style="font-family:var(--font-mono);font-size:13px;color:#666;">Fake.py</code>。点击下方「混淆」，右边才会生成它的真实产物 <code style="font-family:var(--font-mono);font-size:13px;color:#666;">Fake-obf.py</code>。同一份逻辑，一字未改的对外行为——只是没人愿意读了。</p>
+    </div>
+    <div class="demo-grid">
+      <div class="demo-pane">
+        <div class="pane-head">
+          <span>输入<span class="pane-file">fake.py</span></span>
+          <span class="pane-tag">python · 90 行</span>
+        </div>
+        <textarea id="demoInput" class="code-area" spellcheck="false" aria-label="待混淆的源代码：Fake.py"></textarea>
+      </div>
+      <div class="demo-pane">
+        <div class="pane-head">
+          <span>输出<span class="pane-file">fake-obf.py</span></span>
+          <button id="copyBtn" class="copy-btn" type="button" disabled>复制</button>
+        </div>
+        <textarea id="demoOutput" class="code-area" readonly spellcheck="false" aria-label="混淆后的代码输出：Fake-obf.py" placeholder="// 点击下方「混淆」按钮，生成 Fake-obf.py 产物"></textarea>
+      </div>
+    </div>
+    <div class="demo-actions">
+      <button id="obfBtn" class="btn btn-primary" type="button" data-jelly>混淆</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button" data-jelly>还原示例</button>
+      <div class="demo-progress" id="demoProgress" aria-hidden="true"><span></span></div>
+      <div id="demoStatus" class="demo-status" aria-live="polite">等待点击「混淆」</div>
+    </div>
+    <p class="demo-note">
+      右侧产物由编译期 21 项 AST 变换生成：字符串全部落成 XOR 密文常量（<code>strings</code>/<code>grep</code> 抓不到明文）、
+      方法名替换为 <code>_fn_</code> + 高熵随机串、控制流被压平成 <code>match</code> 状态机调度、条件里塞入依赖运行时的恒真谓词、
+      int 常量被包装成会自我还原的类型黑洞 <code>_I(...)</code>、异常抛出点改成暗语表 <code>_ERRxxx(code, cls, *args)</code>。
+      类名、参数名、魔术方法、<code>@dataclass</code> 字段访问均被豁免引擎保护，函数签名与对外 API 一字未动，行为完全等价。
+      改动输入框内容后再次点击「混淆」，会得到浏览器内的简化风格演示（非真实产物）。
+    </p>
+  </div>
+</section>
+
+<!-- ===== 4. 混淆手段全览 ===== -->
+<section id="techniques">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">// techniques</div>
+      <h2>混淆手段全览</h2>
+      <p class="sec-lead">四层落地，43 项手段。每一项都标注了实现函数、作用解析与当前状态——包括那些「已经写进去但暂时空转」的部分。</p>
+    </div>
+
+    <!-- 一、编译期 -->
+    <div class="tech-group">
+      <div class="tech-group-head">
+        <span class="tech-group-num">01</span>
+        <h3>编译期：AST 变换</h3>
+        <span class="tech-count">21 项</span>
+      </div>
+      <div class="tech-list">
+
+        <article class="tech">
+          <div class="tech-top"><h4>标识符熵化重命名</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_gen_entropy_name</div>
+          <p class="tech-desc">函数/方法名 → <code>_fn_</code> + 高熵随机串（长度可调 4–32）。类名、参数名、魔术方法、<code>test_*</code> 一律不改。还会丢弃含 <code>frida</code>/<code>pydev</code>/<code>ida</code>/<code>x64dbg</code> 等子串的随机名——防止混淆结果意外撞上自己的沙箱检测名单。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>跨模块重命名同步</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">visit_ImportFrom / visit_Import / visit_Attribute</div>
+          <p class="tech-desc"><code>from pkg.mod import fn</code>、<code>from pkg import mod</code>、<code>import a.b</code> 三种形态全部登记，调用点同步改写。否则跨模块调用直接断链。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>作用域遮蔽保护</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_collect_scope_bindings</div>
+          <p class="tech-desc">裸名重命名不区分作用域时，与「方法同名」的形参/局部变量会被误改（<code>ast.arg</code> 却不变）→ <code>UnboundLocalError</code>。这里维护作用域栈规避。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>内置属性名保护</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">BUILTIN_ATTR_NAMES</div>
+          <p class="tech-desc">约 200 个内置/标准库属性名（<code>to_bytes</code>/<code>encode</code>/<code>split</code>/<code>exists</code>…）不作方法重命名位置。因为属性改写不做接收者类型推断，否则 <code>(5).to_bytes(...)</code> 会被一起改坏。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>协议方法保护</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">is_protocol_method</div>
+          <p class="tech-desc"><code>visit_*</code> / <code>generic_visit</code> 不改名。<code>ast.NodeVisitor.visit()</code> 用 <code>getattr(self, "visit_"+NodeType)</code> 按字面名分发，改名后整条遍历会静默退化。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>栈上瞬态字符串</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_stack_string / _build_stack_decoder_function</div>
+          <p class="tech-desc">每个字符串用不同密钥 XOR（密钥取 128–254，密文必为非 ASCII，<code>strings</code>/<code>grep</code> 抓不到），运行时在 <code>ctypes.create_string_buffer</code> 里解码，解完立即 <code>memset</code> 清零。防静态字符串提取 + 防内存 dump 残留。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>字符串拆分（5 算法池）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_split_string → join / base64 / reduce / 奇偶位 / bytes 重建</div>
+          <p class="tech-desc">破坏字符串的语法形状（常量 → 表达式），值不变。<code>base64</code>/<code>functools</code> 用内联 <code>__import__</code>，不依赖目标模块是否导入。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>类型黑洞</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_type_wrapper_class / _wrap_constant_in_type_hole</div>
+          <p class="tech-desc">int 常量包成 int 子类 <code>_I(...)</code>：重载 <code>+ - * / //</code> 并保持结果仍是该类型、<code>__repr__</code> 还原成普通整数；构造时还翻转 <code>builtins</code> 上一个幽灵标志位。只包 int（float 会被截断）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>MBA 混合布尔算术</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_apply_mba / _build_guarded_mba</div>
+          <p class="tech-desc"><code>a+b → (a^b)+2(a&amp;b)</code>、<code>a-b → (a^b)-2((~a)&amp;b)</code>、<code>a^b → (a|b)-(a&amp;b)</code>。关键在运行时 int 类型守卫：两侧都是 int 才走 MBA，否则回退原运算（否则 str/list 位运算直接崩）。操作数绑到 lambda 形参，只求值一次。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>活体死代码</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_inject_living_dead_binop</div>
+          <p class="tech-desc">MBA 外再套 <code>(lambda t1,t2: t1)(expr, None)</code>，注入无副作用的假参数，让伪造运算真正进入数据流（不是不可达代码，反编译器无法当死代码删掉）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>不透明谓词（DSV）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_opaque_predicate</div>
+          <p class="tech-desc">4 种数学恒真式轮换，全部依赖运行时状态：<code>id(None)²+time_ns()≥0</code>、<code>(randbits(16)|1)&gt;0</code>、<code>len(md5(b'').digest())&gt;0</code>、<code>((id(None)|1)&amp;1)==1</code>。以 <code>原条件 and 谓词</code> 合入 if/while——静态分析折不出常量。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>控制流平坦化（函数级）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_flatten_to_dispatcher</div>
+          <p class="tech-desc">按基本块切分 → <code>while True: match 状态码</code> 调度机，末块状态置 0 退出；额外塞一个永不命中的假 case（<code>id(None)^id(0)</code>）。只对块数 &gt;2 的函数生效。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>控制流平坦化（模块级）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_wrap_top_level_stmts</div>
+          <p class="tech-desc">把模块级连续可执行语句打包成状态机，循环条件再 <code>and</code> 一个恒真谓词。有两条硬约束：必须就地替换（否则与函数定义交换执行顺序会改变输出）、只装箱「引用名此刻已绑定」的语句（否则 <code>NameError</code>）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>恒定时间比较</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_constant_time_compare</div>
+          <p class="tech-desc"><code>a == b</code> / <code>a != b</code> → <code>hmac.compare_digest(str(a).encode(), str(b).encode())</code>，消除 <code>==</code> 的短路时序侧信道（<code>!=</code> 再套一层 <code>not</code>）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>异常路径改写</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_exception_encryption / visit_Raise</div>
+          <p class="tech-desc"><code>raise ValueError("msg")</code> → <code>raise _ERRxxx(&lt;随机码&gt;, ValueError, "msg")</code>：把抛出点做成暗语，异常类与原参数原样透传（保 <code>except</code> 语义与消息文本）。<code>_code</code> / <code>_ERR_MAP</code> 是干扰诱饵。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>幽灵死代码</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_ghost_dead_code</div>
+          <p class="tech-desc">模块级 <code>_ghost_xxx = lambda: [id(None)^md5(...), rand&amp;rand]</code>。惰性赋值，热路径零开销，污染模块符号表。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>match / f-string 保护</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">visit_Match / visit_JoinedStr</div>
+          <p class="tech-desc"><code>match</code> 只变换 subject/guard/body，pattern 保持原样（字面量被包成 Call 会被 Python 当类模式 → <code>TypeError</code>）；f-string 内部字面量不加密（Call 节点会污染 JoinedStr）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>多策略元类注入</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_metaclass → 6 策略池</div>
+          <p class="tech-desc">给类挂 <code>__getattribute__</code> 钩子：调用方函数名前缀命中「安全前缀池」（<code>__init__</code>/<code>_make</code>/<code>_validate</code>/<code>from_orm</code>/<code>_sa_</code>…）时还原被换掉的 <code>__dict__</code>，否则按 <code>_obfmap_</code> 反查。目的是兼容 ORM/dataclass 的字段访问，同时对外隐藏真实属性名。6 种结构完全不同（inspect / sys._getframe / __import__ 延迟 / 极简 / 闭包链 / 装饰器注入），消除 YARA 式全域指纹。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>兼容类属性映射</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_compat_obf_map</div>
+          <p class="tech-desc">给 dataclass/ORM 风格类生成 <code>_obfmap_</code> 字典与 <code>_safe_xxx(self, name, value)</code>，字段名随机化后再映射回原名。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>污点重写（动态属性）</h4><span class="tech-status cond">条件</span></div>
+          <div class="tech-impl">analyze_dynamic_access / _build_secured_getattr_call</div>
+          <p class="tech-desc">检测到 <code>getattr(obj, 变量名)</code> 就改写成 <code>_sg_xxx(obj, name, md5摘要)</code>，在 <code>AttributeError</code> 时联动蜜罐。绝不阻断构建。只重写 2 参数形式（3 参数的默认值会被丢）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>元类冲突规避</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_inject_metaclass</div>
+          <p class="tech-desc">外部基类（<code>ast.NodeVisitor</code>、<code>abc.ABC</code>、<code>enum.Enum</code>）或已注入元类的本地基类不再注入，避免 metaclass conflict；不重复加 <code>@dataclass</code>；明确不做 <code>__slots__</code> 名字随机化（历史上导致 <code>AttributeError</code>）。</p>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- 二、运行期 · 一次性初始化 -->
+    <div class="tech-group">
+      <div class="tech-group-head">
+        <span class="tech-group-num">02</span>
+        <h3>运行期：一次性初始化（import 时执行）</h3>
+        <span class="tech-count">10 项</span>
+      </div>
+      <div class="tech-list">
+
+        <article class="tech">
+          <div class="tech-top"><h4>API 去特征化</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_api_stealth</div>
+          <p class="tech-desc">解析 <code>/proc/self/maps</code> 找到 libc 的 r-xp 段，用 <code>CFUNCTYPE</code> 造函数指针直接调 <code>prctl(PR_SET_DUMPABLE)</code>；Windows 走 <code>SetProcessWorkingSetSize</code>，macOS 走 <code>ptrace(PT_DENY_ATTACH)</code>。所有检测字符串（<code>r-xp</code>/<code>libc</code>/<code>linux</code>/<code>win32</code>）先 SHA-256 哈希再比对，静态扫不到明文。中间夹 <code>_smoke_syscall()</code> 做调用序列烟雾。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>反内存 Dump（平台自适应）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_core_dump_prevention</div>
+          <p class="tech-desc">Linux: <code>prctl</code> + <code>setrlimit(RLIMIT_CORE, 0)</code>；Windows: 收缩工作集；macOS: <code>ptrace</code>。三个平台分支用哈希比对选路，无硬编码特征。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>环境综合检测入口</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_vm_environment_check</div>
+          <p class="tech-desc">组合下面 4 个探测函数，任一为真就 <code>time.sleep(1000)</code> 秒后 <code>sys.exit(0xDEAD)</code>——睡眠拖延而非直接退出，提高动态分析成本。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>├ 反 VM 检测</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_vm_cpu_detection</div>
+          <p class="tech-desc">网卡 OUI 前缀（VMware/VirtualBox/QEMU/Hyper-V 6 个）+ <code>/proc/cpuinfo</code> 关键词 + <code>platform.processor()</code> 是否含 hypervisor；全部 SHA-256 截断哈希比对，零明文。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>├ 沙箱进程检测</h4><span class="tech-status cond">条件</span></div>
+          <div class="tech-impl">_build_sandbox_process_detection</div>
+          <p class="tech-desc">用 <code>psutil.process_iter</code> 扫进程名，对照 17 个分析工具哈希表（procmon/wireshark/ida/x64dbg/fiddler…）。<code>psutil</code> 不在则静默跳过。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>├ 低资源检测</h4><span class="tech-status cond">条件</span></div>
+          <div class="tech-impl">_build_low_resource_detection</div>
+          <p class="tech-desc">内存 &lt; 4 GB 或 CPU &lt; 2 核视为沙箱。误报风险高（低配真机/容器会被判定）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>├ 时序异常检测</h4><span class="tech-status cond">条件</span></div>
+          <div class="tech-impl">_build_timing_anomaly_detection</div>
+          <p class="tech-desc"><code>sum(range(1000))</code> 耗时 &lt; 1000 ns 判定为异常快（虚拟化/仿真）。阈值写死，同样易误报。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>文件完整性校验</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_file_integrity_check</div>
+          <p class="tech-desc">编译期把源文件 SHA-256 硬编码进产物，运行时重算比对；不符则联动蜜罐 + <code>raise RuntimeError('FILE_TAMPERED')</code>（注意：异常被外层 <code>except</code> 吞掉）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>导入期自变异</h4><span class="tech-status noop">生效 · 空行为</span></div>
+          <div class="tech-impl">_build_import_morphing_loader</div>
+          <p class="tech-desc">往 <code>sys.meta_path</code> 头部插一个自定义 finder，种子 = <code>pid ^ time_ns()</code>。目前 <code>find_module</code> 恒返回 None，实际是占位 hooks + 污染 <code>meta_path</code>（未来接入真实变异）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>防御序列随机化</h4><span class="tech-status noop">空转</span></div>
+          <div class="tech-impl">_build_shuffled_guard</div>
+          <p class="tech-desc">生成 5–15 轮 <code>os.getpid()</code> 循环的守卫函数，打乱调用序列特征。</p>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- 三、运行期 · 后台守护线程 -->
+    <div class="tech-group">
+      <div class="tech-group-head">
+        <span class="tech-group-num">03</span>
+        <h3>运行期：后台守护线程</h3>
+        <span class="tech-count">7 项</span>
+      </div>
+      <div class="tech-list">
+
+        <article class="tech">
+          <div class="tech-top"><h4>多因子完整性链</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_bytecode_integrity_stub</div>
+          <p class="tech-desc">每个模块级函数首行插 <code>_register_critical(fn)</code> 记录 <code>co_code</code> 哈希；后台线程每 20–35 秒重算。任一不符 → <code>_OBF_INTEGRITY = False</code>。<code>_safe_decrypt</code> 在熔断时返回 <code>os.urandom</code>（密钥自动作废）。熔断已就位，后果尚未接线。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>C 级内存校验</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_clvl_integrity</div>
+          <p class="tech-desc">用 <code>ctypes.string_at(ptr, size)</code> 直接对原始内存做 SHA-256，绕过 Python 层 hook。种子 = <code>pid ^ time_ms ^ id(os)</code>，后台每 15–35 秒巡检。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>内存页重随机化</h4><span class="tech-status noop">生效 · 空循环</span></div>
+          <div class="tech-impl">_build_memory_randomizer</div>
+          <p class="tech-desc">用 <code>mmap</code> + <code>madvise(MADV_DONTDUMP)</code> 分配匿名页，后台线程每 5–15 秒把数据搬到新页并 <code>memset</code> 旧页，对抗内存扫描。当前 <code>_MEMORY_PAGES</code> 恒为空 → 线程空循环。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>后台沙箱复检</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_background_guardian</div>
+          <p class="tech-desc">每 30–47 秒复检 CPU 核数与内存总量，命中则联动蜜罐。睡眠间隔掺入 <code>id(thread) % 17</code> 抖动，避免固定周期被识别。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>栈帧返回地址加密</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">_build_stack_frame_encryption</div>
+          <p class="tech-desc">用 <code>sys.setprofile</code> 挂钩，在 <code>call</code>/<code>return</code> 事件里把 <code>frame.f_lasti</code> 与 <code>id(frame)</code> 异或。目的是污染 <code>sys.setprofile</code> 钩子存在性（运行时自检里「sys.setprofile 钩子存在」就是它）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>蜜罐响应</h4><span class="tech-status cond">条件</span></div>
+          <div class="tech-impl">honeypot.py</div>
+          <p class="tech-desc"><code>trigger_compromise()</code> 后 <code>apply_noise</code> 每次把噪音级别 ×1.5（上限 1.0），按比例随机翻转字节位/替换可打印字符——输出渐进污染。另有假数据包、假 quote、RTC 时间炸弹（时间回跳 &gt; 阈值即触发）。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>反调试引擎</h4><span class="tech-status part">部分生效</span></div>
+          <div class="tech-impl">anti_debug.py</div>
+          <p class="tech-desc"><code>IsDebuggerPresent</code>（Win）/ <code>TracerPid</code>（Linux）、RDTSC 时序抖动、MAC 前缀 OUI、DMI 系统串。注意：<code>_detect_hw_breakpoints()</code> 与 <code>forge_stack_frame()</code> 是空实现，CPUID vendor 检测也直接 <code>return False</code>。</p>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- 四、分发期与工程侧 -->
+    <div class="tech-group">
+      <div class="tech-group-head">
+        <span class="tech-group-num">04</span>
+        <h3>分发期与工程侧</h3>
+        <span class="tech-count">7 项</span>
+      </div>
+      <div class="tech-list">
+
+        <article class="tech">
+          <div class="tech-top"><h4>文件封印</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">seal_file / body_digest</div>
+          <p class="tech-desc">尾部追加 <code>#@AO-SEAL-v1:&lt;Ed25519签名&gt;:&lt;SHA-256摘要&gt;</code>，签名覆盖「去掉尾标的正文」。纯 Python 实现 Ed25519（RFC 8032），无第三方依赖。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>加密二进制授权</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">encrypt_license</div>
+          <p class="tech-desc"><code>magic(8)|salt(16)|nonce(16)|密文|tag(32)</code>；HKDF-SHA256 派生密钥（ikm 含机器码），HMAC-SHA256 计数器模式流加密，encrypt-then-MAC。密文与机器码强绑定。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>机器指纹（HWID）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">machine_fingerprint</div>
+          <p class="tech-desc"><code>SHA-256(系统 + 架构 + uuid.getnode() + 主机名 + PROCESSOR_IDENTIFIER + COMPUTERNAME + 用户名)</code>。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>首次运行计时</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">first_run_timestamp</div>
+          <p class="tech-desc">授权只存 <code>days</code>，到期 = <code>first_run + days×86400</code>。状态文件加密且绑机器码，多副本取最早。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>分片乱序分发</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">split_bundle.py</div>
+          <p class="tech-desc">按顶层定义边界 + 行/字符级细分，切成数百片（每片 ≤4096 B），随机命名、顺序打乱，入口持内置顺序表文本拼接后 <code>exec</code>。分片本身无需是合法 Python。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>豁免引擎（护栏）</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">exclude_engine.py</div>
+          <p class="tech-desc">13 种规则：decorator / inheritance / dataclass / protobuf_message / magic_methods / function_regex / path_regex / enforce_slots / build_abort / compat_inheritance… + <code>@preserve</code> 装饰器。这是防止把框架改坏的安全阀，不是混淆手段。</p>
+        </article>
+
+        <article class="tech">
+          <div class="tech-top"><h4>流水线 7 阶段</h4><span class="tech-status on">生效</span></div>
+          <div class="tech-impl">pipeline.py</div>
+          <p class="tech-desc">Phase1 解析+slots+污点 → Phase2 AST 混淆 → Phase3 Cython → Phase4 LLVM <code>-fla</code> → Phase5 PGO 双编 → Phase6 SMC/懒加载互斥 → Phase7 CI 熔断。Phase3–5 为可选加速轨道。</p>
+        </article>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== 5. 纯动画宣传片 ===== -->
+<section id="film">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">// film</div>
+      <h2>宣传片</h2>
+      <p class="sec-lead">十一秒，看完一段代码的一生：被写下、被打乱、被锁住。整部片子由代码实时绘制，没有用到任何视频文件。</p>
+    </div>
+    <div class="film-stage">
+      <canvas id="filmCanvas" role="img" aria-label="Any 混淆器宣传片动画：代码被打乱并汇聚成一把锁，随后变为 Any 标志"></canvas>
+    </div>
+    <div class="film-actions">
+      <button id="filmReplay" class="btn btn-outline" type="button" data-jelly>重播</button>
+    </div>
+    <!-- 减弱动态模式下的关键静帧序列：代码 → 锁 → Any 标志 -->
+    <div class="film-static">
+      <div class="fs-panel">
+        <div class="fs-label">01 · 代码</div>
+        <pre>function decrypt(k, p) {
+  return (k ^ p) &gt;&gt;&gt; 0;
+}</pre>
+      </div>
+      <div class="fs-panel">
+        <div class="fs-label">02 · 混淆上锁</div>
+        <svg viewBox="0 0 48 48" width="64" height="64" role="img" aria-label="锁形图标">
+          <rect x="10" y="21" width="28" height="20" rx="4" fill="none" stroke="#111" stroke-width="3"/>
+          <path d="M16 21v-5a8 8 0 0 1 16 0v5" fill="none" stroke="#111" stroke-width="3"/>
+          <circle cx="24" cy="28.5" r="3.2" fill="#111"/>
+          <path d="M24 31.5v5" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="fs-panel">
+        <div class="fs-label">03 · Any</div>
+        <div class="fs-logo">Any<span class="fs-caret" aria-hidden="true"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 6. 价格 ===== -->
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">// pricing</div>
+      <h2>价格</h2>
+      <p class="sec-lead">两种买法。我们由衷推荐第一种；第二种的存在，更多是出于哲学层面的考虑。</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card price-card--featured">
+        <span class="card-badge">推荐</span>
+        <h3>商业版</h3>
+        <div class="price"><span class="price-num">$39</span><span class="price-unit">/ 月</span></div>
+        <ul>
+          <li>不限项目、不限次数混淆</li>
+          <li>标识符重写 · 控制流变形 · 字符串加密</li>
+          <li>优先获得更新与新特性</li>
+          <li>邮件支持，两个工作日内回复</li>
+        </ul>
+        <!-- TODO: 替换为商业版真实购买链接 -->
+        <a class="btn btn-primary btn-block" href="" data-jelly>立即购买</a>
+      </div>
+      <div class="price-card price-card--source">
+        <h3>混淆器源代码</h3>
+        <div class="price"><span class="price-num">$399,999</span><span class="price-unit">/ 一次性</span></div>
+        <ul>
+          <li>完整源代码，一次性交付</li>
+          <li>附构建脚本与内部文档</li>
+        </ul>
+        <!-- TODO: 替换为源代码购买链接（如果你是认真的） -->
+        <a class="btn btn-ghost btn-block" href="" data-jelly>购买源代码</a>
+        <div class="declare">
+          <p>特别声明：一旦有人获得混淆器源代码，我们将停止一切更新，产品将彻底无法使用。</p>
+        </div>
+      </div>
+    </div>
+    <p class="pricing-footnote">* $399,999 的定价经过严密测算，主要作用是让 $39 显得格外合理。</p>
+  </div>
+</section>
+
+<!-- ===== 7. Bug 反馈 ===== -->
+<section id="bug">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">// feedback</div>
+      <h2>Bug 反馈</h2>
+      <p class="sec-lead">发现 Bug 了？别慌——能被你发现的 Bug，都活不久。顺手提个 Issue，让它死得更体面一点。</p>
+    </div>
+    <!-- TODO: 将下方 href 替换为 GitHub Issues 链接，例如 https://github.com/kboxcbh/any/issues -->
+    <a class="btn btn-primary" href="" target="_blank" rel="noopener" data-jelly>提交 Bug / GitHub Issues</a>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== 8. 页脚 ===== -->
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <div class="footer-title">Any 混淆器</div>
+      <div class="footer-meta">© <span id="year">2025</span> Any 混淆器 · 所有作者均为kboxcbh</div>
+    </div>
+    <nav class="footer-nav" aria-label="页脚导航">
+      <a href="#demo">实时演示</a>
+      <a href="#techniques">混淆手段</a>
+      <a href="#film">宣传片</a>
+      <a href="#pricing">价格</a>
+      <!-- TODO: 将下方 href 替换为 GitHub Issues 链接 -->
+      <a href="" target="_blank" rel="noopener">Bug 反馈</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- 全局轻量提示（复制 / 彩蛋），不使用 alert -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ============================================================
+     数据源：Fake.py（原始）与 Fake-obf.py（混淆产物）
+     放在 text/plain 的 script 中，HTML 解析器不会处理其内容，
+     由页面脚本读出后注入演示输入 / 输出框。
+     ============================================================ -->
+<script type="text/plain" id="srcFakePy">
+# -*- coding: utf-8 -*-
+"""
+警告：这是一个“模拟支付”的虚假实现，仅用于教学、测试、演示。
+它不会连接银行、微信、支付宝、Stripe 等真实支付渠道，
+也不会处理真实卡号，更不能伪造真实支付成功。
+严禁用于诈骗、盗版、绕过支付、欺骗用户等用途。
+"""
+
+from dataclasses import dataclass, field
+from enum import Enum
+import random
+import time
+import uuid
+
+
+class PaymentStatus(Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+
+
+@dataclass
+class Order:
+    order_id: str
+    amount: float
+    currency: str = "CNY"
+    status: PaymentStatus = PaymentStatus.PENDING
+    created_at: float = field(default_factory=time.time)
+
+
+class FakePaymentGateway:
+    """模拟支付网关：不产生真实交易。"""
+
+    def __init__(self, success_rate=0.85):
+        if not 0 <= success_rate <= 1:
+            raise ValueError("success_rate 必须在 0~1 之间")
+        self.success_rate = success_rate
+        self.orders = {}
+        self.transactions = {}
+
+    def create_order(self, amount, currency="CNY"):
+        if amount <= 0:
+            raise ValueError("金额必须大于 0")
+
+        order_id = f"ORD-{uuid.uuid4().hex[:12]}"
+        order = Order(
+            order_id=order_id,
+            amount=round(float(amount), 2),
+            currency=currency,
+        )
+        self.orders[order_id] = order
+        return order
+
+    def pay(self, order_id, method="fake_pay", card_token=None):
+        order = self.orders.get(order_id)
+        if not order:
+            raise ValueError("订单不存在")
+
+        if order.status != PaymentStatus.PENDING:
+            return {
+                "ok": False,
+                "message": f"订单状态为 {order.status.value}，不可支付",
+            }
+
+        # 模拟：不接收、不保存真实卡号，只接受一个假 token
+        tx_id = f"TX-{uuid.uuid4().hex[:16]}"
+        ok = random.random() < self.success_rate
+
+        if ok:
+            order.status = PaymentStatus.SUCCESS
+            self.transactions[tx_id] = {
+                "order_id": order_id,
+                "amount": order.amount,
+                "currency": order.currency,
+                "method": method,
+                "status": "success",
+                "card_token": "****" if card_token else None,
+            }
+            return {
+                "ok": True,
+                "transaction_id": tx_id,
+                "message": "模拟支付成功",
+            }
+        else:
+            order.status = PaymentStatus.FAILED
+            self.transactions[tx_id] = {
+                "order_id": order_id,
+                "amount": order.amount,
+                "currency": order.currency,
+                "method": method,
+                "status": "failed",
+                "card_token": "****" if card_token else None,
+            }
+            return {
+                "ok": False,
+                "transaction_id": tx_id,
+                "message": "模拟支付失败",
+            }
+
+    def refund(self, order_id):
+        order = self.orders.get(order_id)
+        if not order:
+            raise ValueError("订单不存在")
+
+        if order.status != PaymentStatus.SUCCESS:
+            return {
+                "ok": False,
+                "message": "只有支付成功的订单才能退款",
+            }
+
+        order.status = PaymentStatus.REFUNDED
+        return {
+            "ok": True,
+            "order_id": order_id,
+            "message": "模拟退款成功",
+        }
+
+    def query_order(self, order_id):
+        order = self.orders.get(order_id)
+        if not order:
+            raise ValueError("订单不存在")
+
+        return {
+            "order_id": order.order_id,
+            "amount": order.amount,
+            "currency": order.currency,
+            "status": order.status.value,
+            "created_at": order.created_at,
+        }
+
+
+if __name__ == "__main__":
+    gw = FakePaymentGateway(success_rate=0.9)
+
+    order = gw.create_order(199.00)
+    print("创建订单:", gw.query_order(order.order_id))
+
+    pay_result = gw.pay(
+        order.order_id,
+        method="fake_alipay",
+        card_token="demo-token",
+    )
+    print("支付结果:", pay_result)
+    print("订单状态:", gw.query_order(order.order_id))
+
+    if pay_result["ok"]:
+        print("退款结果:", gw.refund(order.order_id))
+        print("退款后状态:", gw.query_order(order.order_id))
+</script>
+
+<script type="text/plain" id="srcFakeObf">
+def _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(_d, _k, *, _enumerate=enumerate, _len=len, _range=range):
+    import ctypes as _ct
+    _a = _ct.create_string_buffer(_len(_d) + 1)
+    for _i, _b in _enumerate(_d):
+        _a[_i] = _b ^ _k
+    _r = _a.value.decode('utf-8', errors='replace')
+    for _i in _range(_len(_d) + 1):
+        _a[_i] = 0
+    return _r
+
+class _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(int):
+
+    def __new__(cls, _v):
+        import builtins as _bi
+        _bi._ghost_flagbFXnDDwhaWSiOapCFQcBafGBjXgPesfe = not getattr(_bi, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe9\xd1\xde\xd9\xc5\xc2\xe9\xd0\xda\xd7\xd1\xd4\xf0\xee\xd8\xf2\xf2\xc1\xde\xd7\xe1\xe5\xdf\xf9\xd7\xc6\xf5\xf0\xe7\xd5\xf4\xd7\xd0\xf1\xf4\xdc\xee\xd1\xe6\xd3\xc5\xd0\xd3', 182), False)
+        return super().__new__(cls, _v)
+
+    def _wrap(self, _r):
+        _b = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb5\xa2\xbe\xbb\xa3\xbe\xb9\xa4', 215))
+        return type(self)(_r) if _b.isinstance(_r, _b.int) and (not _b.isinstance(_r, _b.bool)) else _r
+
+    def __add__(self, _o):
+        return self._wrap(int(self) + _o)
+
+    def __sub__(self, _o):
+        return self._wrap(int(self) - _o)
+
+    def __mul__(self, _o):
+        return self._wrap(int(self) * _o)
+
+    def __truediv__(self, _o):
+        return self._wrap(int(self) / _o)
+
+    def __floordiv__(self, _o):
+        return self._wrap(int(self) // _o)
+
+    def __repr__(self):
+        return str(int(self))
+
+    def __int__(self):
+        return super().__int__()
+
+class _META_9HpxdX21Uno9URKbG41aoNPYQOskN7uQ(type):
+    _db_uGVT1h6bp4LxcwTvDAWMksdyfH45D8bW = {}
+
+    def __init__(cls, name, bases, namespace):
+        super().__init__(name, bases, namespace)
+        _orig = cls.__getattribute__
+        _pfx = (_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xaf\xaf\x83\x95\x84\xaf\xaf', 240), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe8\xe8\xd9\xd2\xc0\xe8\xe8', 183), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd8\xf1\xe6\xeb\xee\xe3\xe6\xf3\xe2', 135), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe5\xdd\xdf\xd4\xdf\xc8\xdb\xce\xdf', 186), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb5\xb5\x83\x84\x83\x9e\xb5\xb5', 234), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfc\xd0\xc6\xd7\xd6\xd3', 163), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8d\xbf\xb3\xb9\xb7', 210))
+
+        def _proxy_LQrsKJarS0sQF5gdkQwywiZKvTFAXwfF(self, item):
+            try:
+                _f = None
+                try:
+                    import inspect
+                    _f = inspect.currentframe()
+                except Exception:
+                    pass
+                if _f is not None and _f.f_back is not None:
+                    _who = _f.f_back.f_code.co_name
+                    for _p in _pfx:
+                        if _who.startswith(_p):
+                            try:
+                                _rd = object.__getattribute__(self, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa1\x8c\x9b\x9f\x92\xa1\x9a\x97\x9d\x8a', 254))
+                            except AttributeError:
+                                _rd = None
+                            if _rd is not None:
+                                object.__setattr__(self, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd3\xd3\xe8\xe5\xef\xf8\xd3\xd3', 140), _rd)
+                            break
+            finally:
+                del _f
+            try:
+                return _orig(self, item)
+            except AttributeError:
+                _alt = type(self)._db_uGVT1h6bp4LxcwTvDAWMksdyfH45D8bW.get(item, item)
+                return _orig(self, _alt)
+        cls.__getattribute__ = _proxy_LQrsKJarS0sQF5gdkQwywiZKvTFAXwfF
+        super().__setattr__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc9\xf3\xaf\xa0\xa1\xf3\xa3', 150), type(cls)._db_uGVT1h6bp4LxcwTvDAWMksdyfH45D8bW)
+import hashlib, threading, time, types
+_OBF_INTEGRITY = True
+_CRITICAL_FUNCTIONS = set()
+_EXPECTED_HASHES = {}
+
+def _register_critical(func):
+    try:
+        _CRITICAL_FUNCTIONS.add(func.__name__)
+        _EXPECTED_HASHES[func.__name__] = hashlib.sha256(func.__code__.co_code).digest()
+    except Exception:
+        pass
+
+def _verify_integrity():
+    global _OBF_INTEGRITY
+    for fname in _CRITICAL_FUNCTIONS:
+        f = globals().get(fname)
+        if f and isinstance(f, types.FunctionType):
+            current_hash = hashlib.sha256(f.__code__.co_code).digest()
+            if current_hash != _EXPECTED_HASHES.get(fname, b''):
+                _OBF_INTEGRITY = False
+                return False
+    _OBF_INTEGRITY = True
+    return True
+
+def _integrity_guardian():
+    while True:
+        time.sleep(20 + hash(str(threading.get_ident())) % 15)
+        _verify_integrity()
+threading.Thread(target=_integrity_guardian, daemon=True).start()
+
+def _safe_decrypt(key_material):
+    if not _OBF_INTEGRITY:
+        import os
+        return os.urandom(len(key_material))
+    return key_material
+import ctypes, os, random, hashlib
+
+def _smoke_syscall():
+    for _ in range(random.randint(1, 3)):
+        os.getpid()
+
+def _str_hash(s, n=4):
+    return hashlib.sha256(s.encode()).hexdigest()[:n]
+
+def _linux_stealth():
+    try:
+        _tgt = _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xac\xf3\xa6\xae', 222), 4)
+        _ltgt = _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbe\xbb\xb0\xb1', 210), 4)
+        with open(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x95\xca\xc8\xd5\xd9\x95\xc9\xdf\xd6\xdc\x95\xd7\xdb\xca\xc9', 186), 'r') as f:
+            for line_ in f:
+                _h = _str_hash(line_.strip()[:40], 4)
+                if _ltgt == _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x82\x87\x8c\x8d', 238), 4) and _tgt == _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc9\x96\xc3\xcb', 187), 4):
+                    if _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xae\xab\xa0\xa1', 194) in line_ and _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb6\xe9\xbc\xb4', 196) in line_:
+                        base = int(line_.split('-')[0], 16)
+                        prctl_proto = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong)
+                        call_prctl = prctl_proto(base + 749120)
+                        _smoke_syscall()
+                        call_prctl(2, 0, 0, 0, 0)
+                        call_prctl(1, 0, 0, 0, 0)
+                        _smoke_syscall()
+                        break
+    except Exception:
+        pass
+
+def _win_stealth():
+    try:
+        k32 = ctypes.windll.kernel32
+        _smoke_syscall()
+        k32.SetProcessWorkingSetSize(k32.GetCurrentProcess(), -1, -1)
+        _smoke_syscall()
+    except Exception:
+        pass
+
+def _mac_stealth():
+    try:
+        libc = ctypes.CDLL(ctypes.util.find_library('c'))
+        _smoke_syscall()
+        libc.ptrace(31, 0, 0, 0)
+        _smoke_syscall()
+    except Exception:
+        pass
+
+def _api_stealth_init():
+    import sys
+    _smoke_syscall()
+    p = sys.platform
+    _lh = _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9e\x9b\x9c\x87\x8a', 242), 5)
+    _wh = _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9b\x85\x82\xdf\xde', 236), 5)
+    _mh = _str_hash(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x93\x96\x85\x80\x9e\x99', 247), 6)
+    if _str_hash(p, 5) == _lh:
+        _linux_stealth()
+    elif _str_hash(p, 5) == _wh:
+        _win_stealth()
+    elif _str_hash(p, 6) == _mh:
+        _mac_stealth()
+    _smoke_syscall()
+_api_stealth_init()
+import struct, hashlib, time as _vt
+_VM_SESSION_KEY = int(_vt.time_ns() % 65535 if hasattr(_vt, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe3\xfe\xfa\xf2\xc8\xf9\xe4', 151)) else _vt.time() % 65535)
+
+def _vm_op_encode(op):
+    return op ^ _VM_SESSION_KEY & 255
+_VM_OP_LOAD_CONST = _vm_op_encode(1)
+_VM_OP_LOAD_FAST = _vm_op_encode(2)
+_VM_OP_STORE_FAST = _vm_op_encode(3)
+_VM_OP_LOAD_GLOBAL = _vm_op_encode(4)
+_VM_OP_STORE_GLOBAL = _vm_op_encode(5)
+_VM_OP_LOAD_ATTR = _vm_op_encode(6)
+_VM_OP_STORE_ATTR = _vm_op_encode(7)
+_VM_OP_BINARY_ADD = _vm_op_encode(8)
+_VM_OP_BINARY_SUB = _vm_op_encode(9)
+_VM_OP_BINARY_MUL = _vm_op_encode(10)
+_VM_OP_BINARY_DIV = _vm_op_encode(11)
+_VM_OP_BINARY_MOD = _vm_op_encode(12)
+_VM_OP_BINARY_POW = _vm_op_encode(13)
+_VM_OP_BINARY_AND = _vm_op_encode(14)
+_VM_OP_BINARY_OR = _vm_op_encode(15)
+_VM_OP_BINARY_XOR = _vm_op_encode(16)
+_VM_OP_BINARY_LSHIFT = _vm_op_encode(17)
+_VM_OP_BINARY_RSHIFT = _vm_op_encode(18)
+_VM_OP_COMPARE_EQ = _vm_op_encode(19)
+_VM_OP_COMPARE_NE = _vm_op_encode(20)
+_VM_OP_COMPARE_LT = _vm_op_encode(21)
+_VM_OP_COMPARE_GT = _vm_op_encode(22)
+_VM_OP_COMPARE_LE = _vm_op_encode(23)
+_VM_OP_COMPARE_GE = _vm_op_encode(24)
+_VM_OP_UNARY_NEG = _vm_op_encode(25)
+_VM_OP_UNARY_NOT = _vm_op_encode(26)
+_VM_OP_UNARY_INVERT = _vm_op_encode(27)
+_VM_OP_BUILD_LIST = _vm_op_encode(28)
+_VM_OP_BUILD_TUPLE = _vm_op_encode(29)
+_VM_OP_BUILD_DICT = _vm_op_encode(30)
+_VM_OP_LIST_APPEND = _vm_op_encode(31)
+_VM_OP_CALL_FUNC = _vm_op_encode(32)
+_VM_OP_CALL_METHOD = _vm_op_encode(33)
+_VM_OP_GET_ITER = _vm_op_encode(34)
+_VM_OP_FOR_ITER = _vm_op_encode(35)
+_VM_OP_JUMP = _vm_op_encode(36)
+_VM_OP_JUMP_IF_FALSE = _vm_op_encode(37)
+_VM_OP_JUMP_IF_TRUE = _vm_op_encode(38)
+_VM_OP_RETURN = _vm_op_encode(39)
+_VM_OP_POP_TOP = _vm_op_encode(40)
+_VM_OP_DUP_TOP = _vm_op_encode(41)
+_VM_OP_ROT_TWO = _vm_op_encode(42)
+_VM_OP_ROT_THREE = _vm_op_encode(43)
+_VM_OP_GARBAGE_NOP = _vm_op_encode(44)
+_VM_OP_GARBAGE_MATH = _vm_op_encode(45)
+_VM_OP_GARBAGE_SWAP = _vm_op_encode(46)
+
+def _vm_exec(vm_code, consts, varnames, globs, locals_dict):
+    ip = 0
+    stack = []
+    ic = 0
+    while ip < len(vm_code):
+        op = vm_code[ip]
+        ip += 1
+        ic += 1
+        try:
+            if op == _VM_OP_LOAD_CONST:
+                idx = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                stack.append(consts[idx])
+            elif op == _VM_OP_LOAD_FAST:
+                idx = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                stack.append(locals_dict.get(varnames[idx]))
+            elif op == _VM_OP_STORE_FAST:
+                idx = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                locals_dict[varnames[idx]] = stack.pop()
+            elif op == _VM_OP_LOAD_GLOBAL:
+                idx = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                stack.append(globs.get(varnames[idx]))
+            elif op == _VM_OP_STORE_GLOBAL:
+                idx = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                globs[varnames[idx]] = stack.pop()
+            elif op == _VM_OP_LOAD_ATTR:
+                obj = stack.pop()
+                idx = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                stack.append(getattr(obj, varnames[idx], None))
+            elif op == _VM_OP_BINARY_ADD:
+                stack.append(stack.pop() + stack.pop())
+            elif op == _VM_OP_BINARY_SUB:
+                r = stack.pop()
+                stack.append(stack.pop() - r)
+            elif op == _VM_OP_BINARY_MUL:
+                stack.append(stack.pop() * stack.pop())
+            elif op == _VM_OP_BINARY_DIV:
+                r = stack.pop()
+                stack.append(stack.pop() / r)
+            elif op == _VM_OP_BINARY_AND:
+                stack.append(stack.pop() & stack.pop())
+            elif op == _VM_OP_BINARY_OR:
+                stack.append(stack.pop() | stack.pop())
+            elif op == _VM_OP_BINARY_XOR:
+                stack.append(stack.pop() ^ stack.pop())
+            elif op == _VM_OP_COMPARE_EQ:
+                stack.append(1 if stack.pop() == stack.pop() else 0)
+            elif op == _VM_OP_COMPARE_NE:
+                stack.append(1 if stack.pop() != stack.pop() else 0)
+            elif op == _VM_OP_COMPARE_LT:
+                r = stack.pop()
+                stack.append(1 if stack.pop() < r else 0)
+            elif op == _VM_OP_COMPARE_GT:
+                r = stack.pop()
+                stack.append(1 if stack.pop() > r else 0)
+            elif op == _VM_OP_BUILD_LIST:
+                n = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                stack.append([stack.pop() for _ in range(n)][::-1])
+            elif op == _VM_OP_BUILD_TUPLE:
+                n = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                stack.append(tuple([stack.pop() for _ in range(n)][::-1]))
+            elif op == _VM_OP_CALL_FUNC:
+                n = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                args = [stack.pop() for _ in range(n)][::-1]
+                fn = stack.pop()
+                stack.append(fn(*args))
+            elif op == _VM_OP_JUMP:
+                ip = struct.unpack_from('<H', vm_code, ip)[0]
+            elif op == _VM_OP_JUMP_IF_FALSE:
+                target = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                if not stack.pop():
+                    ip = target
+            elif op == _VM_OP_JUMP_IF_TRUE:
+                target = struct.unpack_from('<H', vm_code, ip)[0]
+                ip += 2
+                if stack.pop():
+                    ip = target
+            elif op == _VM_OP_RETURN:
+                return stack.pop() if stack else None
+            elif op == _VM_OP_POP_TOP:
+                if stack:
+                    stack.pop()
+            elif op == _VM_OP_DUP_TOP:
+                if stack:
+                    stack.append(stack[-1])
+            elif op == _VM_OP_ROT_TWO:
+                if len(stack) >= 2:
+                    stack[-1], stack[-2] = (stack[-2], stack[-1])
+            elif op == _VM_OP_ROT_THREE:
+                if len(stack) >= 3:
+                    stack[-1], stack[-2], stack[-3] = (stack[-3], stack[-1], stack[-2])
+            elif op == _VM_OP_UNARY_NEG:
+                if stack:
+                    stack.append(-stack.pop())
+            elif op == _VM_OP_UNARY_NOT:
+                if stack:
+                    stack.append(0 if stack.pop() else 1)
+            elif op == _VM_OP_GARBAGE_NOP:
+                pass
+            elif op == _VM_OP_GARBAGE_MATH:
+                if len(stack) >= 2:
+                    _a = stack.pop()
+                    _b = stack.pop()
+                    _r = _a * _b ^ _a + _b
+                    del _r
+            elif op == _VM_OP_GARBAGE_SWAP:
+                if len(stack) >= 4:
+                    stack[-1], stack[-4] = (stack[-4], stack[-1])
+                    stack[-1], stack[-4] = (stack[-4], stack[-1])
+        except Exception:
+            return None
+    return stack.pop() if stack else None
+import hashlib, ctypes
+_FRAG_KEY_SEED = id(object()) ^ int(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x88\x95\x91\x99', 252)).time_ns() % 65535 if hasattr(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb0\xad\xa9\xa1', 196)), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xed\xf0\xf4\xfc\xc6\xf7\xea', 153)) else __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xaf\xb2\xb6\xbe', 219)).time() % 65535)
+
+def _decrypt_fragment(ciphertext, frag_index):
+    key = hashlib.sha256(str(_FRAG_KEY_SEED).encode() + str(frag_index).encode()).digest()
+    return bytes([c ^ key[i % len(key)] for i, c in enumerate(ciphertext)])
+
+def _exec_fragment(bytecode_fragment):
+    decrypted = _decrypt_fragment(bytecode_fragment, 0)
+    exec(decrypted, globals())
+    for i in range(len(decrypted)):
+        try:
+            ctypes.memset(ctypes.addressof(ctypes.c_char.from_buffer(decrypted)), 0, len(decrypted))
+        except Exception:
+            pass
+import ctypes, hashlib, os, time, threading, struct
+_CLVL_SEED = (int(hashlib.sha256(str(os.getpid()).encode()).hexdigest()[:12], 16) ^ int(time.time() * 1000) ^ id(os)) & 4294967295
+_CLVL_MAGIC = _CLVL_SEED ^ 2779096485
+_CLVL_CHECKPOINTS = {}
+
+def _clvl_register(name, data_ptr, size):
+    _h = hashlib.sha256(ctypes.string_at(data_ptr, size)).digest()
+    _CLVL_CHECKPOINTS[name] = (_h, data_ptr, size)
+
+def _clvl_verify_all():
+    for name, (expected, ptr, sz) in _CLVL_CHECKPOINTS.items():
+        try:
+            cur = hashlib.sha256(ctypes.string_at(ptr, sz)).digest()
+            if cur != expected:
+                global _OBF_INTEGRITY
+                _OBF_INTEGRITY = False
+        except Exception:
+            pass
+
+def _clvl_guardian():
+    while True:
+        time.sleep(15 + hash(str(threading.get_ident())) % 20)
+        _clvl_verify_all()
+threading.Thread(target=_clvl_guardian, daemon=True).start()
+import random as _fer, hashlib as _feh, time as _fet
+_FAKE_ENTRIES = []
+
+def _fake_entry_generator():
+    for _i in range(1000):
+        _seed = _feh.sha256(str(_i + id(_fet)).encode()).hexdigest()[:4]
+        if _seed == _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd5\xd5\xd5\xd5', 229):
+            continue
+        _FAKE_ENTRIES.append(lambda s=_seed: _feh.sha256(s.encode()).hexdigest())
+import hashlib, os, sys as _sys
+_MODULE_KEY_SEED = (os.getpid() ^ int(hashlib.sha256(str(os.getcwd()).encode()).hexdigest()[:8], 16) ^ id(object())) & 4294967295
+
+def _gen_module_key():
+    return hashlib.sha256(str(_MODULE_KEY_SEED).encode()).digest()
+
+def _xor_decrypt(data, key):
+    return bytes([data[i] ^ key[i % len(key)] for i in range(len(data))])
+import threading, time, ctypes, mmap, random
+_MEMORY_PAGES = {}
+
+def _mem_alloc_secure(size):
+    buf = mmap.mmap(-1, size, flags=mmap.MAP_PRIVATE | mmap.MAP_ANONYMOUS)
+    try:
+        ctypes.CDLL(None).madvise(buf, size, 4)
+    except Exception:
+        pass
+    return buf
+
+def _mem_randomize_thread():
+    while True:
+        time.sleep(5 + id(threading.current_thread()) % 10)
+        for page_id, page_data in list(_MEMORY_PAGES.items()):
+            try:
+                new_page = _mem_alloc_secure(len(page_data))
+                new_page[:] = page_data[:]
+                ctypes.memset(ctypes.c_char_p(page_data), 0, len(page_data))
+                _MEMORY_PAGES[page_id] = new_page
+            except Exception:
+                pass
+threading.Thread(target=_mem_randomize_thread, daemon=True).start()
+import sys
+_ORIG_PROFILE = sys.getprofile()
+
+def _profile_hook(frame, event, arg):
+    try:
+        if event == _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x84\x86\x8b\x8b', 231):
+            frame.f_lasti ^= id(frame) & 65535
+        elif event == _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa9\xbe\xaf\xae\xa9\xb5', 219):
+            frame.f_lasti ^= id(frame) & 65535
+    except Exception:
+        pass
+    try:
+        if _ORIG_PROFILE:
+            return _ORIG_PROFILE(frame, event, arg)
+    except Exception:
+        pass
+sys.setprofile(_profile_hook)
+
+def _shuffled_guard():
+    for _ in range(12):
+        try:
+            __import__('os').getpid()
+        except Exception:
+            pass
+        try:
+            __import__('os').getpid()
+        except Exception:
+            pass
+        try:
+            __import__('os').getpid()
+        except Exception:
+            pass
+
+def _blackhole_CAlcaaO8gXCVJQKdAqEAqewNnCwRYmg5(_target):
+    try:
+        import types, secrets
+        if hasattr(_target, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbe\xbe\x82\x8e\x85\x84\xbe\xbe', 225)):
+            _c = _target.__code__
+            _target.__code__ = _c.replace(co_filename=f'<{secrets.token_hex(8)}>', co_name=_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfb\xab\xa6\xaa\xa5\xa3\xa6\xf9', 199), co_lnotab=b'')
+            if hasattr(_c, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc3\xcf\xff\xcc\xc9\xce\xc5\xd4\xc1\xc2\xcc\xc5', 160)):
+                _target.__code__ = _target.__code__.replace(co_linetable=b'')
+        if hasattr(_target, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8e\x8e\xb5\xb8\xb2\xa5\x8e\x8e', 209)):
+            for _k in list(_target.__dict__.keys()):
+                if not _k.startswith('_'):
+                    del _target.__dict__[_k]
+    except Exception:
+        pass
+
+def _nodir_JpojdUiDNKEEHGfWYpacDsoNfn0FMcWU(*_a, **_kw):
+    return []
+
+class _MorphLoader_sO3KA9R4lchz0spc7xyAwbgyg09GJNgG:
+
+    def find_module(self, _fullname, _path=None):
+        return None
+
+    def load_module(self, _fullname):
+        raise ImportError
+import sys as _sys_morph_
+__morph_seed_pfLiSHl5J7v7STqACxoDG6IqDIJ9sWSa = __import__('os').getpid() ^ __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe6\xfb\xff\xf7', 146)).time_ns()
+_sys_morph_.meta_path.insert(0, _MorphLoader_sO3KA9R4lchz0spc7xyAwbgyg09GJNgG())
+
+def _mutate_IkTrSx1mIhYqpl8VMPBdfKx37BrMixqx(_fn):
+    try:
+        import types
+        _c = _fn.__code__
+        _old = _c.co_consts
+        _new = tuple((c ^ _HOT_SEEDeuMnBpK9VPImxuj7yNdid9Btp0CBs2yM if isinstance(c, int) and (not isinstance(c, bool)) else c for c in _old))
+        _fn.__code__ = _c.replace(co_consts=_new)
+    except Exception:
+        pass
+
+def _bpw_lC6MWcDShdZoNVM1rSMWuIxBsR6cpVh9(fn):
+    try:
+        import types
+        _c = fn.__code__
+        _nb = bytes([145, 255, 255, 110, 254, 0]) + _c.co_code
+        fn.__code__ = _c.replace(co_code=_nb, co_stacksize=_c.co_stacksize + 2, co_lnotab=b'\x00' * 6)
+    except Exception:
+        pass
+    return fn
+_ERR_MAPP8K5jHtGS0L9owaRUhlCc3HTjy08znCz = {51634: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe9\xee\xbb\xbb\xbe\xbd\xe8\xb4\xb4\xea\xb9\xee', 140), 42894: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8c\x8e\xdf\xdf\x8d\xdf\x8f\x8a\x8d\xdb\x8e\xd9', 186), 50423: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x88\x8b\x8b\xd9\xd9\xd0\xda\xdf\xdd\x8f\xd0\xdf', 233), 37151: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf3\xf7\xa4\xf5\xfa\xf1\xf4\xf7\xa4\xf2\xfb\xa4', 194), 48832: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfc\xf1\xff\xfd\xaf\xfa\xfe\xfd\xf1\xaf\xf0\xfc', 201), 32702: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf6\xaa\xf3\xa7\xaa\xa2\xf3\xa1\xf1\xa4\xf0\xf7', 146), 38535: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbe\xea\xe2\xe2\xbd\xbe\xea\xe9\xbe\xe9\xee\xed', 219), 61475: _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb0\xe5\xe1\xe4\xe3\xe7\xb0\xe3\xb6\xb4\xb4\xe3', 213)}
+
+def _ERRf44sx4U7e0H16td30WMSiIuWsVKtLsdw(_code, _cls, *_args):
+    _m = _ERR_MAPP8K5jHtGS0L9owaRUhlCc3HTjy08znCz
+    _actual = _code ^ __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x85\x92\x8e\x8b\x93\x8e\x89\x94', 231)).id(object())
+    if _actual in _m:
+        _m.get(_actual)
+    raise _cls(*_args)
+
+def _env_probedgIblrMwdXBqkz2iDoQAL0YB86mbEsoP():
+    import os, time as _t, hashlib as _v8h3
+    _hp = lambda s: _v8h3.sha256(s.encode()).hexdigest()[:4]
+    try:
+        if os.cpu_count() is not None and os.cpu_count() < 3:
+            __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x94\x83\x9f\x9a\x82\x9f\x98\x85', 246))._SANDBOXGAaHxk3ZM4XTLF6pnnQW3oqHgNAJnGBe = True
+    except Exception:
+        pass
+    try:
+        _vdb = _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd1\x80\xd6\xd2', 225)
+        _cyb = _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa7\xf4\xa9\xf2', 145)
+        if os.path.exists(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xac\xe7\xe6\xf5\xac\xf5\xe7\xe1', 131)) and _hp(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd1\x9a\x9b\x88\xd1\x88\x9a\x9c', 254)) == _vdb:
+            __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf1\xe6\xfa\xff\xe7\xfa\xfd\xe0', 147))._SANDBOXGAaHxk3ZM4XTLF6pnnQW3oqHgNAJnGBe = True
+        if os.path.exists(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf0\xa9\xbe\xad\xf0\xb3\xb0\xb8\xf0\xbc\xa6\xbd\xba\xad', 223)) and _hp(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfc\xa5\xb2\xa1\xfc\xbf\xbc\xb4\xfc\xb0\xaa\xb1\xb6\xa1', 211)) == _cyb:
+            __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x85\x92\x8e\x8b\x93\x8e\x89\x94', 231))._SANDBOXGAaHxk3ZM4XTLF6pnnQW3oqHgNAJnGBe = True
+    except Exception:
+        pass
+    if __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc9\xde\xc2\xc7\xdf\xc2\xc5\xd8', 171))._SANDBOXGAaHxk3ZM4XTLF6pnnQW3oqHgNAJnGBe:
+        while True:
+            _t.sleep(999)
+
+def _key_guardPOfuM04VVZ9WyQ2LfEGBWij1wAkGGgK4(_key_obj):
+    import threading, time, hashlib
+
+    def _keeper():
+        _kh = hashlib.sha256(_key_obj._key).digest()[:8]
+        while True:
+            time.sleep(30)
+            try:
+                if hashlib.sha256(_key_obj._key).digest()[:8] != _kh:
+                    import src.honeypot as _hp
+                    _hp.Honeypot().trigger_compromise()
+                _key_obj._key = _key_obj._key[1:] + _key_obj._key[:1]
+            except Exception:
+                pass
+    threading.Thread(target=_keeper, daemon=True).start()
+_ct_cmp_LeZQltGG4ny25inXg5B6RqzcPsEw9cid = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8a\x8f\x83\x81', 226)).compare_digest
+
+def _anti_hookqK6b7JK2zNOwy6GV3OL9QeyRwSsXPY8f():
+    import sys, hashlib as _v8h4
+    _hc = lambda s: _v8h4.sha256(s.encode()).hexdigest()[:4]
+    _targets = {_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfd\xfb\xae\xae', 153), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x91\x98\xc2\x97', 161), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xcd\x96\xce\xcc', 175)}
+    _f = sys._getframe()
+    for _ in range(8):
+        if _f is None:
+            break
+        _c = _f.f_code
+        _fn = _c.co_filename
+        for _part in _fn.replace('\\', '/').replace('.', '/').split('/'):
+            if _part and _hc(_part.lower()) in _targets:
+                __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9c\x8b\x97\x92\x8a\x97\x90\x8d', 254))._COMPROMISEDBYX9TNF3ZUMW6mcNydONMng4RxvCnaat = True
+                return
+        _f = _f.f_back
+_ANYOBF_PLATFORM = None
+_ANYOBF_IS_LINUX = bool(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x81\x8b\x81', 242)).platform.startswith(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x99\x9c\x9b\x80\x8d', 245)))
+_ANYOBF_IS_WIN = bool(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe8\xe2\xe8', 155)).platform == _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb4\xaa\xad\xf0\xf1', 195))
+_ANYOBF_IS_MAC = bool(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdf\xd5\xdf', 172)).platform == _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd1\xd4\xc7\xc2\xdc\xdb', 181))
+
+def _sys_smoke():
+    try:
+        __import__('os').getpid()
+        __import__('os').getpid()
+    except Exception:
+        pass
+
+def _mem_guard_init_iaBG6oZVNm1rGPTJtnqFQfDRyGqDATIj():
+    _sys_smoke()
+    try:
+        _sys_smoke()
+        if _ANYOBF_IS_LINUX:
+            _libc = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfc\xeb\xe6\xef\xfa\xec', 159)).CDLL(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdb\xcc\xc1\xc8\xdd\xcb\x96\xcd\xcc\xd1\xd4', 184)).find_library('c'))
+            _libc.prctl(2, 0, 0, 0, 0)
+            _libc.prctl(1, 0, 0, 0, 0)
+            _sys_smoke()
+            __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc8\xdf\xc9\xd5\xcf\xc8\xd9\xdf', 186)).setrlimit(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x85\x92\x84\x98\x82\x85\x94\x92', 247)).RLIMIT_CORE, (0, 0))
+        elif _ANYOBF_IS_WIN:
+            _k32 = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf7\xe0\xed\xe4\xf1\xe7', 148)).windll.kernel32
+            _k32.SetProcessWorkingSetSize(_k32.GetCurrentProcess(), -1, -1)
+        elif _ANYOBF_IS_MAC:
+            _libc = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xda\xcd\xc0\xc9\xdc\xca', 185)).CDLL(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbf\xa8\xa5\xac\xb9\xaf\xf2\xa9\xa8\xb5\xb0', 220)).find_library('c'))
+            _libc.ptrace(31, 0, 0, 0)
+    except Exception:
+        pass
+    _sys_smoke()
+_mem_guard_init_iaBG6oZVNm1rGPTJtnqFQfDRyGqDATIj()
+
+def _madv_dontdump_UrMh3Afx5l52yaiGKswg6cke2V2b3FCX(_buf, _size=None):
+    try:
+        import ctypes, sys as _s
+        if _size is None:
+            _size = len(_buf)
+        if _s.platform.startswith(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xeb\xee\xe9\xf2\xff', 135)):
+            ctypes.CDLL(None).madvise(ctypes.c_char_p(_buf), _size, 4)
+    except Exception:
+        pass
+
+def _szero_DGJQx65jdwALcWYQHO8Bsa1s5olAU2x6(_buf):
+    try:
+        import ctypes
+        _s = len(_buf)
+        _p = ctypes.c_char_p(_buf)
+        for _v in (0, 255, 170, 85, 0):
+            ctypes.memset(_p, _v, _s)
+    except Exception:
+        pass
+
+def _mlock_buf_RczCh8wpoj1c8EQ1KFPjoayhKmWJoyiC(_buf):
+    try:
+        import ctypes
+        _addr = ctypes.addressof(ctypes.c_char.from_buffer(_buf))
+        _libc = ctypes.CDLL(None)
+        if hasattr(_libc, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xda\xdb\xd8\xd4\xdc', 183)):
+            _libc.mlock(_addr, len(_buf))
+        _libc.madvise(ctypes.c_char_p(_addr), len(_buf), 4)
+    except Exception:
+        pass
+
+def _file_verify_Lze8RiB2m6p25qHGliiOfxnsqdJdX7ES():
+    import hashlib, os
+    _fp = os.path.abspath(__file__)
+    try:
+        _h = hashlib.sha256()
+        with open(_fp, 'rb') as _f:
+            for _ch in iter(lambda: _f.read(8192), b''):
+                _h.update(_ch)
+        if _h.hexdigest() != _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd3\x82\xd9\xd7\xd8\x82\xd5\xd0\x80\xd0\x82\xd6\xd8\x83\xd8\xd4\xd9\x83\x80\x83\xd4\x84\xd6\xd0\xd0\xd0\xd0\xd9\xd1\xd0\x87\x83\xd1\xd8\xd8\xd6\xd7\x85\x85\xd5\xd3\x83\x82\xd4\xd5\x87\x80\x84\xd9\xd8\xd0\x87\xd6\xd9\xd3\x87\xd6\x83\x84\xd9\xd0\x80\xd3\xd2', 225):
+            import src.honeypot as _hp
+            _hp.Honeypot().trigger_compromise()
+            raise RuntimeError(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xaa\xa5\xa0\xa9\xb3\xb8\xad\xa1\xbc\xa9\xbe\xa9\xa8', 236))
+    except Exception:
+        pass
+_file_verify_Lze8RiB2m6p25qHGliiOfxnsqdJdX7ES()
+
+def _h(s, n=4):
+    return _v8h.sha256(s.encode()).hexdigest()[:n]
+
+def _sandbox_proc_TyxwUmuGxe1J1DD9HknNr0PZhnLfyfu1():
+    _found = False
+    import hashlib as _v8h2
+    _bh = lambda s, n=4: _v8h2.sha256(s.encode()).hexdigest()[:n]
+    try:
+        _ps = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc8\xcb\xcd\xcc\xd1\xd4', 184))
+        _bad_hashes = set([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb4\xe8\xe9\xb1', 208), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xba\xbc\xee\xed', 139), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb5\xb2\xe2\xb6', 215), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x98\x9c\xc9\xcd', 253), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8c\xd0\xde\xdd', 232), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x94\x9e\x90\x90', 166), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb3\xb0\xb9\xb6', 128), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc6\xc7\xce\xc6', 246), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa0\xa1\xf7\xf4', 145), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xca\xcf\x98\x9f', 252), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfa\xfa\xae\xfa', 152), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa2\xa7\xf1\xf7', 146), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbf\xb3\xbe\xbf', 139), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe7\xb1\xbc\xb4', 133), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc1\xc2\xc7\x92', 244), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9f\x9c\x98\xcd', 171), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xed\xbe\xea\xef', 218)])
+        for _p in _ps.process_iter([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x80\x8f\x83\x8b', 238)]):
+            _nm = (_p.info.get(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb1\xbe\xb2\xba', 223)) or '').lower()
+            if _bh(_nm, 4) in _bad_hashes:
+                _found = True
+                break
+    except Exception:
+        pass
+    return _found
+
+def _lowres_Kea4JwqI2U2IPkxQrj8ZH0hrIuBoNAdW():
+    _suspect = False
+    try:
+        import os
+        _ps = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa6\xa5\xa3\xa2\xbf\xba', 214))
+        if _ps.virtual_memory().total < 4 * 1024 ** 3:
+            _suspect = True
+        if os.cpu_count() is not None and os.cpu_count() < 2:
+            _suspect = True
+    except Exception:
+        try:
+            import os
+            if os.cpu_count() is not None and os.cpu_count() < 2:
+                _suspect = True
+        except Exception:
+            pass
+    return _suspect
+
+def _ts_anomaly_ZUyOlWxM55jjliLTgzJ5MVxNlazhqzor(_threshold=1000):
+    try:
+        import time
+        _t0 = time.perf_counter_ns()
+        _ = sum((i for i in range(1000)))
+        _t1 = time.perf_counter_ns()
+        if _t1 - _t0 < _threshold:
+            return True
+    except Exception:
+        pass
+    return False
+
+def _env_verify_luI5V1lVV4htPZ1FEPTBB4ZUmVgBmw8b():
+    _conf = False
+    try:
+        _conf = _conf or _vm_detect_zsP0kpXwSj60prRoP8D5Dex2ldgBRaPl()
+    except Exception:
+        pass
+    try:
+        _conf = _conf or _sandbox_proc_TyxwUmuGxe1J1DD9HknNr0PZhnLfyfu1()
+    except Exception:
+        pass
+    try:
+        _conf = _conf or _lowres_Kea4JwqI2U2IPkxQrj8ZH0hrIuBoNAdW()
+    except Exception:
+        pass
+    try:
+        _conf = _conf or _ts_anomaly_ZUyOlWxM55jjliLTgzJ5MVxNlazhqzor()
+    except Exception:
+        pass
+    if _conf:
+        import time, sys
+        for _ in range(1000):
+            time.sleep(1)
+        sys.exit(57005)
+_env_verify_luI5V1lVV4htPZ1FEPTBB4ZUmVgBmw8b()
+
+def _bg_guardian_wf1qAE5K2ym75uNixoGVHKcX8OEYulNL():
+    import threading, time, hashlib, os
+    _running = True
+
+    def _watchdog():
+        _ph = None
+        try:
+            with open(__file__, 'rb') as _f:
+                _ph = hashlib.sha256(_f.read()).digest()
+        except Exception:
+            pass
+        while _running:
+            try:
+                time.sleep(30 + id(threading.current_thread()) % 17)
+                if os.cpu_count() is not None and os.cpu_count() < 2:
+                    import src.honeypot as _hp
+                    _hp.Honeypot().trigger_compromise()
+                try:
+                    _ps = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe3\xe0\xe6\xe7\xfa\xff', 147))
+                    if _ps.virtual_memory().total < 4 * 1024 ** 3:
+                        import src.honeypot as _hp
+                        _hp.Honeypot().trigger_compromise()
+                except Exception:
+                    pass
+            except Exception:
+                pass
+    _t = threading.Thread(target=_watchdog, daemon=True)
+    _t.start()
+_bg_guardian_wf1qAE5K2ym75uNixoGVHKcX8OEYulNL()
+
+def _safe_op_Vp2ApQYMHy4vDzKrVDKDFzWAgXOPZuSp(_real_fn, *args, _check=True, **_kw):
+    if _check and (not _OBF_INTEGRITY):
+        import time, random
+        time.sleep(random.uniform(0.5, 2.0))
+        try:
+            _r = _real_fn(*args, **_kw)
+            return _r * 0.999 + 1e-05 if isinstance(_r, (int, float)) else _r
+        except Exception:
+            return None
+    return _real_fn(*args, **_kw)
+
+def _smoke_guard():
+    if not _OBF_INTEGRITY:
+        import time
+        time.sleep(60 + id(time.time) % 120)
+        import sys as _s
+        _s.exit(57005)
+
+def _trap_u91Vn4RIV9I6U2OjXf8O9wWZBFPR6RwX():
+    import hashlib, time
+    try:
+        _s = str(time.time_ns())
+    except Exception:
+        _s = str(time.time())
+    _h = hashlib.sha256(_s.encode()).hexdigest()[:6]
+    if _h != _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8b\xdb\x88\xd8\x89\xd9', 234):
+        for _ in range(100000):
+            pass
+
+def _path_exp_f8laTk59xjBpIHYPIGubZSDYXVirR4zD(_x):
+    import random
+    for _i in range(100):
+        if random.random() > 0.5:
+            _x = _x ^ random.randint(0, 255)
+            _x = _x ^ random.randint(0, 255)
+    return _x
+_FAKE_AUTH_OK = True
+
+def _fake_critical_verify():
+    import hashlib, os
+    _k = os.environ.get(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa4\xb2\xb4\xa5\xb2\xa3\xa8\xbc\xb2\xae', 247), '')
+    if _k and hashlib.sha256(_k.encode()).hexdigest()[:8] == _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbf\xbe\xba\xbf\xb9\xbe\xbe\xbd', 219):
+        global _FAKE_AUTH_OK
+        _FAKE_AUTH_OK = True
+
+def _sg_mdyabcYgqypDwY9IlH66rleTNeui7W2T(obj, name, digest):
+    try:
+        return getattr(obj, name)
+    except AttributeError:
+        _fallback = None
+        try:
+            _h = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe8\xe9\xf8\xb5\xf3\xf4\xf5\xfe\xe2\xeb\xf4\xef', 155), fromlist=[_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf4\xd3\xd2\xd9\xc5\xcc\xd3\xc8', 188)])
+            if hasattr(_h, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa1\x86\x87\x8c\x90\x99\x86\x9d', 233)):
+                _h.Honeypot().trigger_compromise()
+        except Exception:
+            pass
+        return _fallback
+_ghost_ZV7tdYN3p9NILaL0p8SlwepbrSXEf34F = lambda: [id(None) ^ hashlib.md5(b''), 1045 & 9621]
+_ghost_8hqgsBjrWtDrO614eNmVNHVsgSLFDjts = lambda: [id(None) ^ hashlib.md5(b''), 9544 & 7034]
+_ghost_pcOkFWuwR5g6ar5vASZyvNo7wi7839V6 = lambda: [id(None) ^ hashlib.md5(b''), 4735 & 9298]
+_ghost_hVsFz4caT7DDEEHFo4rNyy67kreWUDIL = lambda: [id(None) ^ hashlib.md5(b''), 7321 & 5506]
+_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb8Z\x1f\x14W#8]\x0e(Z\r+T*\x1dV\n2V\n\x18P2.T\x1a\x13T9-T&\x1dV\t*P2/U(6Z+(W35W\x1c,U<\x02]\x0e>V\t7U&\x1aV\x08<T\'+W\x1f\x14Q23T\x079Z\x1d\'Q23T\x0e&U\x16\x08Q20\xb8W\x1c1V\n?V\x0e(Z\r,T<\x17[!\x04Z\x13>Q23W\x0c\x1cV\r\x13Q23T&\x1dV\t*W\x1c/Q23\xe1\xc6\xc0\xdb\xc2\xd7\x92U\x1f;U.-W\x1c,T&\x1dV\t*T\n\x12[3!]\x0e>\xb8V\x0b-V\n?V\x0e(W\x166U"4U.-W\x1c,W?\x13W=\x05]\x0e>T)\x06V\n?Z1\x0fV\x0e\x18[2\x12U.-W\x1c,T&\x1dV\t*T:"W8-Q20\xb8V\n\x17U\x143U&\x1aV\x08<Z\x1d:[\x18%Q23U)%U;:Q23U\t\'Z\r5T&\x1dV\t*Q23T\x1e\x08[\x18%U&\x1aT:\x05U\x1f;U&\x1a[2&Q20\xb8', 178)
+from dataclasses import dataclass, field
+from enum import Enum
+import random
+import time
+import uuid
+
+class PaymentStatus(Enum):
+    PENDING = __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x85\x96\x8d\x80\x97\x8c\x8c\x8f\x90', 227)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8d\x98\x93', 253), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc9\xc4\xc3\xca', 173)]))
+    SUCCESS = ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe2\xe4\xf2', 145), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc4\xc2\xd4\xd4', 167)])
+    FAILED = _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc3\xc4\xcc\xc9\xc0\xc1', 165)
+    REFUNDED = bytes.fromhex(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc7\xc2\xc6\xc5\xc6\xc6\xc7\xc5\xc6\x95\xc6\xc4\xc6\xc5\xc6\xc4', 240)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe9\xe8\xfa\xb1\xa4', 156))
+
+@dataclass
+class Order:
+    order_id: str
+    amount: float
+    currency: str = _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x87\x8a\x9d', 196)
+    status: PaymentStatus = PaymentStatus.PENDING
+    created_at: float = field(default_factory=time.time)
+
+class FakePaymentGateway(metaclass=_META_9HpxdX21Uno9URKbG41aoNPYQOskN7uQ):
+    bytes.fromhex(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x82\xd1\x86\xdf\x86\xd6\x82\xd1\xdf\x85\xde\x81\x82\xd1\xde\xd3\x86\x81\x82\xd3\x85\x85\xde\xdf\x82\xd0\x85\x83\xde\xd6\x82\xd2\xdf\xd2\x85\xd4\x82\x81\x85\x84\xde\x86\x82\xd3\x85\xdf\xdf\x83\x82\xd3\x85\x86\x86\xd0\x82\xd0\xde\xd3\xde\x81\x82\xd0\xde\x84\xde\x81\x82\xd2\x86\x82\xde\x82\x82\xd3\x85\x86\x86\xd3\x82\xd1\xde\xdf\xde\xd4\x82\xd4\xdf\xd7\xdf\xd5', 231)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdc\xdd\xcf\x84\x91', 169))
+
+    def __init__(self, success_rate=0.85):
+        if not _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0) <= success_rate <= _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(1) and id.__call__(None) * id.__call__(None) + __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbe\xa3\xa7\xaf', 202)).time_ns() >= 0:
+            raise _ERRf44sx4U7e0H16td30WMSiIuWsVKtLsdw(38064, ValueError, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf8\xfe\xe8\xe8\xee\xf8\xf8\xd4\xf9\xea\xff\xee\xabn4\x0eb*0n\x17#\xab\xbb\xf5\xba\xabo2\x00b\x1c?', 139))
+        self.success_rate = success_rate
+        self.orders = {}
+        self.transactions = {}
+
+    def _fn_XZjmnjSIMkTCe0GaXVKwgm1bOq8k7CQQ(self, amount, currency=_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdd\xd0\xc7', 158)):
+        if amount <= _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0) and len.__call__(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe6\xef\xfd\xe6\xe2\xe7\xec', 142)).md5(b'').digest()) > 0:
+            raise _ERRf44sx4U7e0H16td30WMSiIuWsVKtLsdw(12837, ValueError, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x85\x86\x94\x82\xd1\xd3', 231)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbc\xd3\xef\xd8\xbc\xeb\xc1\xee\xbf\xe8\xa1\xcc\xbc\xeb\xcd\xbd\xbf\xeb\xd9\xe4\xbf\xc6\xfb\xc5\xc3\xce\xcb\xb7', 138)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9f\x9e\x8c\xc7\xd2', 234)))
+        order_id = f'ORD-{uuid.uuid4().hex[:_IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(12)]}'
+        order = Order(order_id=order_id, amount=round(float(amount), _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(2)), currency=currency)
+        self.orders[order_id] = order
+        return order
+
+    def _fn_JEGUDKG0W5dIumbB67jXwk82fr7H40OY(self, order_id, method=''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb0\xb7\xbd\xb3', 214), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x88\xa7\xb6\xae', 215)]), card_token=None):
+        _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(35420)
+        while True and id.__call__(None) * id.__call__(None) + __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdc\xc1\xc5\xcd', 168)).time_ns() >= 0:
+            match _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS:
+                case 35420:
+                    order = self.orders.get(order_id)
+                    _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(33976)
+                case 33976:
+                    if not order and id.__call__(None) * id.__call__(None) + __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xab\xb6\xb2\xba', 223)).time_ns() >= 0:
+                        raise _ERRf44sx4U7e0H16td30WMSiIuWsVKtLsdw(27641, ValueError, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'J\x0c\x00G/7F\x1a/G\x0f:G>\n', 162))
+                    _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(53961)
+                case 53961:
+                    if not __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x82\x87\x8b\x89', 234)).compare_digest(str(order.status).encode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x80\x81\x93\xd8\xcd', 245)), str(PaymentStatus.PENDING).encode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf8\xf9\xeb\xa0\xb5', 141))) and (id.__call__(None) | 1) & 1 == 1:
+                        return {'ok': False, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdc\xcf\xd4\xd9\xce\xd5\xd5\xd6\xc9', 186)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfd\xf5\xe3', 144), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa4\xb6\xb0\xb2', 215)])): f'订单状态为 {order.status.value}，不可支付'}
+                    _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(37110)
+                case 37110:
+                    tx_id = f'TX-{uuid.uuid4().hex[:_IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(16)]}'
+                    ok = random.random() < self.success_rate
+                    _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0)
+                case 0:
+                    if ok and __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf3\xe5\xe3\xf2\xe5\xf4\xf3', 128)).randbits(16) | 1 > 0:
+                        order.status = PaymentStatus.SUCCESS
+                        self.transactions[tx_id] = {''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb4\xa9\xbf\xbe', 219), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfd\xd0\xe6\xeb', 143)]): order_id, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x85\x89\x8b\x91\x8a\x90', 228): order.amount, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xba\xb9\xab\xbd\xee\xec', 216)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x96\xfc\x99\xb6\xac\xa2\x99\xba\x96\xfc\xa4\xf2', 207)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xae\xaf\xbd\xf6\xe3', 219)): order.currency, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc6\xce\xdf\xc3\xc4\xcf', 171): method, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe1\xf2\xe9\xe4\xf3\xe8\xe8\xeb\xf4', 135)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8d\x8a\x9f', 254), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbd\xbc\xba', 201)])): __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa6\xb5\xae\xa3\xb4\xaf\xaf\xac\xb3', 192)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf3\xf5\xe3', 128), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc2\xc4\xd2\xd2', 161)])), __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc8\xcb\xd9\xcf\x9c\x9e', 170)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa8\xc3\xb7\x88\xab\xb7\xc8\xc1\x93\xc3\x85\x9d\x93\x96\xcc\xcc', 241)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x83\x82\x90\xdb\xce', 246)): ''.join(['**', '**']) if card_token else None}
+                        return {'ok': True, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb2\xb1\xa3\xb5\xe6\xe4', 208)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe6\xca\xc8\xea\xe0\xec\xcc\xea\xdb\xb1\xd0\xf2\xe0\xb0\xb7\xe4\xe3\xd5\xd3\xbf', 130)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbf\xbe\xac\xe7\xf2', 202)): tx_id, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfe\xf6\xe0\xe0\xf2\xf4\xf6', 147): _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'E\x0b\x02E(<E7\x0cG\x18;E+3F)<', 163)}
+                    else:
+                        order.status = PaymentStatus.FAILED
+                        self.transactions[tx_id] = {_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb9\xa4\xb2\xb3\xa4\x89\xbf\xb2', 214): order_id, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb8\xab\xb0\xbd\xaa\xb1\xb1\xb2\xad', 222)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xab\xa7\xa5', 202), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd1\xca\xd0', 164)])): order.amount, bytes.fromhex(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9c\x99\x9d\x9f\x9d\x98\x9d\x98\x9c\x9f\x9c\xcf\x9c\x99\x9d\x93', 170)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xdf\xde\xcc\x87\x92', 170)): order.currency, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb7\xbf\xae\xb2\xb5\xbe', 218): method, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc1\xc6\xd3\xc6\xc7\xc1', 178): __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd4\xc7\xdc\xd1\xc6\xdd\xdd\xde\xc1', 178)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd4\xd3\xdb', 178), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa3\xaa\xab', 207)])), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xee\xec\xff\xe9\xd2\xf9\xe2\xe6\xe8\xe3', 141): _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf7\xf7\xf7\xf7', 221) if card_token else None}
+                        return {'ok': False, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x89\x8f\x9c\x93\x8e\x9c\x9e\x89\x94\x92\x93\xa2\x94\x99', 253): tx_id, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8e\x86\x90\x90\x82\x84\x86', 227): ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'9w~9T@9Kp', 223), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'o0\x13n/:c?.', 139)])}
+                    break
+                case 4318846:
+                    _st_4hzB0umrwLgXKiPsoskZSEbEq4ayDkGS = (lambda _a_SFPwZF44D5LO2uasRFzXiEWMZanUi2hL, _b_CD82siP5eTrxmhDvkOw76EKBnHYCmlpG, _ii=__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xec\xfb\xe7\xe2\xfa\xe7\xe0\xfd', 142)).isinstance, _int=__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe0\xf7\xeb\xee\xf6\xeb\xec\xf1', 130)).int: (_a_SFPwZF44D5LO2uasRFzXiEWMZanUi2hL | _b_CD82siP5eTrxmhDvkOw76EKBnHYCmlpG) - (_a_SFPwZF44D5LO2uasRFzXiEWMZanUi2hL & _b_CD82siP5eTrxmhDvkOw76EKBnHYCmlpG) if _ii(_a_SFPwZF44D5LO2uasRFzXiEWMZanUi2hL, _int) and _ii(_b_CD82siP5eTrxmhDvkOw76EKBnHYCmlpG, _int) else _a_SFPwZF44D5LO2uasRFzXiEWMZanUi2hL ^ _b_CD82siP5eTrxmhDvkOw76EKBnHYCmlpG)(id(None), id(_IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0)))
+
+    def _fn_h87jGm03qtqefOrMh6z07xEu5ZFqQVsa(self, order_id):
+        _st_CMheCBMuWgsg6zIXUyfZAq8iQTYNIktO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(45022)
+        while True and (id.__call__(None) | 1) & 1 == 1:
+            match _st_CMheCBMuWgsg6zIXUyfZAq8iQTYNIktO:
+                case 45022:
+                    order = self.orders.get(order_id)
+                    _st_CMheCBMuWgsg6zIXUyfZAq8iQTYNIktO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(26293)
+                case 26293:
+                    if not order and (id.__call__(None) | 1) & 1 == 1:
+                        raise _ERRf44sx4U7e0H16td30WMSiIuWsVKtLsdw(19318, ValueError, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xef\xfc\xe7\xea\xfd\xe6\xe6\xe5\xfa', 137)).reduce(lambda a, b: a + b, ''.join(['订单', _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'.rG/gR/Vb', 202)])))
+                    _st_CMheCBMuWgsg6zIXUyfZAq8iQTYNIktO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(50631)
+                case 50631:
+                    if not __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x80\x85\x89\x8b', 232)).compare_digest(str(order.status).encode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x84\x85\x97\xdc\xc9', 241)), str(PaymentStatus.SUCCESS).encode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb8\xb9\xab\xe0\xf5', 205))) and len.__call__(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd3\xda\xc8\xd3\xd7\xd2\xd9', 187)).md5(b'').digest()) > 0:
+                        return {'ok': False, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xb3\xbb\xad\xad\xbf\xb9\xbb', 222): __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa8\xbb\xa0\xad\xba\xa1\xa1\xa2\xbd', 206)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'q\x1b>r\x08\x1dr\x00;p/\x0cr\x1c\x04q\x1e\x0b', 148), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b':GY5s\x7f8PH;TP5^`4]];qc', 221)]))}
+                    _st_CMheCBMuWgsg6zIXUyfZAq8iQTYNIktO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0)
+                case 0:
+                    order.status = PaymentStatus.REFUNDED
+                    return {'ok': True, __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xaa\xb9\xa2\xaf\xb8\xa3\xa3\xa0\xbf', 204)).reduce(lambda a, b: a + b, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xeb\xf6\xe0\xe1', 132), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe5\xc8\xfe\xf3', 151)])): order_id, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x81\x89\x9f\x9f\x8d\x8b\x89', 236): __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x9c\x9f\x8d\x9b\xc8\xca', 254)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xaa\xee\xf6\xf7\xaa\xf0\xea\xf9\xa9\xc6\xdc\xde\xaa\xee\xe6\xb4\xaa\xf0\xf6\xce\xaa\xc6\xee\xf9', 159)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x80\x81\x93\xd8\xcd', 245))}
+                    break
+                case 16692042:
+                    _st_CMheCBMuWgsg6zIXUyfZAq8iQTYNIktO = (lambda _a_3Ygagz0939SPTolUOGn8jmJbzIz3ZQno, _b_HouXWU93BaXg7iDSC8ApRBc6i4xLZi4W, _ii=__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xcb\xdc\xc0\xc5\xdd\xc0\xc7\xda', 169)).isinstance, _int=__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa5\xb2\xae\xab\xb3\xae\xa9\xb4', 199)).int: (_a_3Ygagz0939SPTolUOGn8jmJbzIz3ZQno | _b_HouXWU93BaXg7iDSC8ApRBc6i4xLZi4W) - (_a_3Ygagz0939SPTolUOGn8jmJbzIz3ZQno & _b_HouXWU93BaXg7iDSC8ApRBc6i4xLZi4W) if _ii(_a_3Ygagz0939SPTolUOGn8jmJbzIz3ZQno, _int) and _ii(_b_HouXWU93BaXg7iDSC8ApRBc6i4xLZi4W, _int) else _a_3Ygagz0939SPTolUOGn8jmJbzIz3ZQno ^ _b_HouXWU93BaXg7iDSC8ApRBc6i4xLZi4W)(id(None), id(_IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0)))
+
+    def _fn_42z5SPR6synCfDit0Tby6ahQBcsicpwz(self, order_id):
+        _st_qVR5X9PBlyT9Gy0SPz5mwkUwqoXNoZlO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(33623)
+        while True and id.__call__(None) * id.__call__(None) + __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xae\xb3\xb7\xbf', 218)).time_ns() >= 0:
+            match _st_qVR5X9PBlyT9Gy0SPz5mwkUwqoXNoZlO:
+                case 33623:
+                    order = self.orders.get(order_id)
+                    _st_qVR5X9PBlyT9Gy0SPz5mwkUwqoXNoZlO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(63430)
+                case 63430:
+                    if not order and (id.__call__(None) | 1) & 1 == 1:
+                        raise _ERRf44sx4U7e0H16td30WMSiIuWsVKtLsdw(45957, ValueError, (lambda _e, _o: ''.join([_c for _p in zip(_e, _o) for _c in _p]) + _e[len(_o):])(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'1w{=aT<Eq', 217), '单存'))
+                    _st_qVR5X9PBlyT9Gy0SPz5mwkUwqoXNoZlO = _IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0)
+                case 0:
+                    return {_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x87\x9a\x8c\x8d\x9a\xb7\x81\x8c', 232): order.order_id, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe5\xe9\xeb\xf1\xea\xf0', 132): order.amount, _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xbf\xa9\xae\xae\xb9\xb2\xbf\xa5', 220): order.currency, ''.join([_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd0\xd7\xc2', 163), _LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfc\xfd\xfb', 136)]): order.status.value, bytes.fromhex(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd5\xd0\xd4\xd1\xd5\xd6\xd5\xd2\xd4\xd7\xd5\xd6\xd5\xd7\xd6\x85\xd5\xd2\xd4\xd7', 227)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd2\xd3\xc1\x8a\x9f', 167)): order.created_at}
+                    break
+                case 9507044:
+                    _st_qVR5X9PBlyT9Gy0SPz5mwkUwqoXNoZlO = (lambda _a_EsbG9FFYkn8xM77t1nKnhAaoLAGk9Nvq, _b_pg0HXLoW7kS59nK0pvSyKt6qEij8JR7x, _ii=__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe5\xf2\xee\xeb\xf3\xee\xe9\xf4', 135)).isinstance, _int=__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xce\xd9\xc5\xc0\xd8\xc5\xc2\xdf', 172)).int: (_a_EsbG9FFYkn8xM77t1nKnhAaoLAGk9Nvq | _b_pg0HXLoW7kS59nK0pvSyKt6qEij8JR7x) - (_a_EsbG9FFYkn8xM77t1nKnhAaoLAGk9Nvq & _b_pg0HXLoW7kS59nK0pvSyKt6qEij8JR7x) if _ii(_a_EsbG9FFYkn8xM77t1nKnhAaoLAGk9Nvq, _int) and _ii(_b_pg0HXLoW7kS59nK0pvSyKt6qEij8JR7x, _int) else _a_EsbG9FFYkn8xM77t1nKnhAaoLAGk9Nvq ^ _b_pg0HXLoW7kS59nK0pvSyKt6qEij8JR7x)(id(None), id(_IMTG5oRTUWXsHoUnxapClCsrIqVyav80Y(0)))
+if __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf2\xf7\xfb\xf9', 154)).compare_digest(str(__name__).encode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf0\xf1\xe3\xa8\xbd', 133)), str(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe3\xe0\xf2\xe4\xb7\xb5', 129)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xfe\x97\x9f\xd2\xff\xf1\xca\xd3\xfe\x97\x9e\x9b', 166)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x98\x99\x8b\xc0\xd5', 237))).encode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xe4\xe5\xf7\xbc\xa9', 145))) and __import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa2\xb4\xb2\xa3\xb4\xa5\xa2', 209)).randbits(16) | 1 > 0:
+    gw = FakePaymentGateway(success_rate=0.9)
+    order = gw._fn_XZjmnjSIMkTCe0GaXVKwgm1bOq8k7CQQ(199.0)
+    print(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b"Y4'Y\x07\x06T\x12\x1eY1)\x86", 188), gw._fn_42z5SPR6synCfDit0Tby6ahQBcsicpwz(order.order_id))
+    pay_result = gw._fn_JEGUDKG0W5dIumbB67jXwk82fr7H40OY(order.order_id, method=bytes.fromhex(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xa2\xa2\xa2\xa5\xa2\xf6\xa2\xa1\xa1\xf2\xa2\xa5\xa2\xf7\xa2\xad\xa3\xa4\xa2\xa5\xa3\xad', 148)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xd8\xd9\xcb\x80\x95', 173)), card_token=_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xda\xdb\xd3\xd1\x93\xca\xd1\xd5\xdb\xd0', 190))
+    print(__import__(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\x8a\x89\x9b\x8d\xde\xdc', 232)).b64decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xf7\xb2\x91\xb4\xf7\x8e\xb7\x9b\xf7\xf5\xb7\x96\xf7\xb2\xf4\xa1\x8d\xa5\xff\xff', 194)).decode(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'\xc8\xc9\xdb\x90\x85', 189)), pay_result)
+    print(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b' fj-E]/B~.HI\xf2', 200), gw._fn_42z5SPR6synCfDit0Tby6ahQBcsicpwz(order.order_id))
+    if pay_result['ok'] and (id.__call__(None) | 1) & 1 == 1:
+        print(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'l\x05\x05c);b>\x16c\x1b\x19\xbf', 133), gw._fn_h87jGm03qtqefOrMh6z07xEu5ZFqQVsa(order.order_id))
+        print(_LQM1D2FV4O0IiubXQQb15PsAt8IVn3uuO(b'0YY?ug<IW>So?YX\xe3', 217), gw._fn_42z5SPR6synCfDit0Tby6ahQBcsicpwz(order.order_id))
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduceMotion = false;
+  try {
+    reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  } catch (e) { reduceMotion = false; }
+
+  /* ---------- 读取内置源码 ---------- */
+  var SRC_FAKE = '';
+  var SRC_OBF = '';
+  (function readSources() {
+    var a = document.getElementById('srcFakePy');
+    var b = document.getElementById('srcFakeObf');
+    if (a && a.textContent) SRC_FAKE = a.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n';
+    if (b && b.textContent) SRC_OBF = b.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n';
+  })();
+
+  /* ---------- Toast ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function showToast(msg) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
+  }
+
+  /* ---------- 果冻脉冲 ---------- */
+  function jellyPulse(el) {
+    if (!el || reduceMotion) return;
+    el.classList.remove('jelly-pulse');
+    void el.offsetWidth;
+    el.classList.add('jelly-pulse');
+    setTimeout(function () { el.classList.remove('jelly-pulse'); }, 620);
+  }
+
+  /* ---------- 年份 ---------- */
+  var yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+  /* ---------- 移动端菜单 ---------- */
+  function initNav() {
+    var nav = document.getElementById('siteNav');
+    var burger = document.getElementById('navBurger');
+    if (!nav || !burger) return;
+    function close() {
+      nav.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+      burger.setAttribute('aria-label', '展开菜单');
+    }
+    burger.addEventListener('click', function () {
+      var open = nav.classList.toggle('open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? '收起菜单' : '展开菜单');
+      jellyPulse(burger);
+    });
+    var links = document.querySelectorAll('#navMenu a');
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', close);
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') close();
+    });
+  }
+
+  /* ---------- 剪贴板 ---------- */
+  function legacyCopy(t) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = t;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) { return false; }
+  }
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).then(function () { return true; }, function () { return legacyCopy(t); });
+    }
+    return Promise.resolve(legacyCopy(t));
+  }
+
+  /* ---------- 简化版模拟混淆（非默认输入时使用） ---------- */
+  function randHex(n) {
+    var s = '', h = '0123456789abcdef';
+    for (var i = 0; i < n; i++) s += h.charAt((Math.random() * 16) | 0);
+    return s;
+  }
+  function obfuscateSource(src) {
+    var KW = new Set(('def class return if elif else for while import from as with try except finally raise ' +
+      'lambda yield global nonlocal pass break continue in is not and or None True False self').split(' '));
+    var nameMap = {};
+    function mapName(w) {
+      if (!nameMap[w]) nameMap[w] = '_fn_' + randHex(6);
+      return nameMap[w];
+    }
+    function junkLine() {
+      var t = [
+        'if id(None) * id(None) + __import__(\'time\').time_ns() >= 0: pass',
+        'while (id(None) | 1) & 1 == 1: break',
+        '_ghost_' + randHex(6) + ' = lambda: [id(None) ^ 0, ' + (Math.random() * 9999 | 0) + ' & 9621]',
+        'if len(__import__(\'hashlib\').md5(b\'\').digest()) > 0: pass'
+      ];
+      return t[(Math.random() * t.length) | 0];
+    }
+    var tokenized = src.replace(
+      /"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|#[^\n]*|\b\d+(?:\.\d+)?\b|[A-Za-z_][A-Za-z0-9_]*/g,
+      function (m) {
+        if (m.indexOf('"""') === 0 || m.indexOf("'''") === 0) return '#' + randHex(12);
+        var c = m.charAt(0);
+        if (c === '"' || c === "'") {
+          var body = m.slice(1, -1);
+          var hx = '';
+          for (var i = 0; i < body.length; i++) hx += body.charCodeAt(i).toString(16).padStart(2, '0');
+          return 'bytes.fromhex(\'' + hx + '\').decode()';
+        }
+        if (c === '#') return '#' + randHex(12);
+        if (c >= '0' && c <= '9') return '_I(' + m + ')';
+        if (KW.has(m)) return m;
+        if (m === 'self') return m;
+        return mapName(m);
+      }
+    );
+    var lines = tokenized.split('\n').map(function (l) { return l.replace(/\s+$/, ''); });
+    var out = ['_I = int', ''];
+    lines.forEach(function (l) {
+      out.push(l);
+      if (l.trim() && Math.random() < 0.16) out.push('    ' + junkLine());
+    });
+    return out.join('\n');
+  }
+
+  /* ---------- 实时演示 ---------- */
+  function initDemo() {
+    var input = document.getElementById('demoInput');
+    var output = document.getElementById('demoOutput');
+    var obfBtn = document.getElementById('obfBtn');
+    var resetBtn = document.getElementById('resetBtn');
+    var copyBtn = document.getElementById('copyBtn');
+    var progress = document.getElementById('demoProgress');
+    var statusEl = document.getElementById('demoStatus');
+    if (!input || !output || !obfBtn) return;
+
+    /* 初始状态：输入 = Fake.py，输出 = 空（等待点击） */
+    input.value = SRC_FAKE;
+    output.value = '';
+    output.placeholder = '// 点击下方「混淆」按钮，生成 Fake-obf.py 产物';
+    if (copyBtn) copyBtn.disabled = true;
+    if (statusEl) statusEl.textContent = '等待点击「混淆」';
+
+    var STEPS = ['解析 AST', '重写标识符', '字符串加密', '控制流平坦化', '生成输出'];
+
+    function isDefaultInput() {
+      return input.value.trim() === SRC_FAKE.trim();
+    }
+
+    function flashStatus(text) {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      if (!reduceMotion) {
+        statusEl.classList.remove('flash');
+        void statusEl.offsetWidth;
+        statusEl.classList.add('flash');
+      }
+    }
+
+    obfBtn.addEventListener('click', function () {
+      if (obfBtn.disabled) return;
+      var src = input.value;
+      if (!src || !src.trim()) {
+        showToast('输入是空的——先放点代码进去');
+        jellyPulse(obfBtn);
+        return;
+      }
+      obfBtn.disabled = true;
+      if (resetBtn) resetBtn.disabled = true;
+      if (copyBtn) copyBtn.disabled = true;
+      output.value = '';
+      flashStatus(STEPS[0]);
+      if (progress) progress.classList.add('on');
+
+      var si = 0;
+      var iv = setInterval(function () {
+        si++;
+        if (si < STEPS.length && statusEl) statusEl.textContent = STEPS[si];
+      }, 200);
+
+      setTimeout(function () {
+        clearInterval(iv);
+        var real = isDefaultInput();
+        output.value = real ? SRC_OBF : obfuscateSource(src);
+        /* 输出框果冻压缩回弹 */
+        output.classList.remove('pulse');
+        void output.offsetWidth;
+        if (!reduceMotion) output.classList.add('pulse');
+        flashStatus(real ? '完成 · 真实产物' : '完成 · 浏览器模拟');
+        if (copyBtn) copyBtn.disabled = false;
+        obfBtn.disabled = false;
+        if (resetBtn) resetBtn.disabled = false;
+        if (progress) progress.classList.remove('on');
+        showToast(real ? '已生成真实混淆产物' : '已生成简化演示产物');
+      }, 1050);
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        input.value = SRC_FAKE;
+        output.value = '';
+        output.classList.remove('pulse');
+        if (copyBtn) copyBtn.disabled = true;
+        flashStatus('等待点击「混淆」');
+        showToast('已还原 Fake.py 示例');
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var txt = output.value;
+        if (!txt) return;
+        copyText(txt).then(function (ok) {
+          showToast(ok ? '已复制到剪贴板' : '复制失败，请手动选择复制');
+        });
+      });
+    }
+  }
+
+  /* ---------- 果冻滚动揭示 ---------- */
+  function initJellyReveal() {
+    if (reduceMotion) return;
+    var groups = document.querySelectorAll('.sec-head, .tech, .price-card, .film-stage');
+    if (!groups.length) return;
+
+    if (!('IntersectionObserver' in window)) return;
+
+    var pending = [];
+    Array.prototype.forEach.call(groups, function (el, idx) {
+      var rect = el.getBoundingClientRect();
+      var inView = rect.top < window.innerHeight - 40 && rect.bottom > 0;
+      el.classList.add('jelly-pre');
+      if (inView) {
+        pending.push(el);
+        setTimeout(function () {
+          el.classList.remove('jelly-pre');
+          el.classList.add('jelly-in');
+        }, Math.min(idx * 55, 340));
+      }
+    });
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        var delay = parseFloat(el.dataset.jellyDelay || '0');
+        setTimeout(function () {
+          el.classList.remove('jelly-pre');
+          el.classList.add('jelly-in');
+        }, delay);
+        io.unobserve(el);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+
+    Array.prototype.forEach.call(groups, function (el) {
+      if (pending.indexOf(el) !== -1) return;
+      io.observe(el);
+    });
+
+    /* 同组内错峰 */
+    var groupsMap = {};
+    Array.prototype.forEach.call(groups, function (el) {
+      var key = el.className.split(' ')[0] || 'g';
+      groupsMap[key] = (groupsMap[key] || 0) + 1;
+      el.dataset.jellyDelay = String(Math.min((groupsMap[key] - 1) * 55, 300));
+    });
+  }
+
+  /* ---------- 宣传片（Canvas 逐帧动画） ---------- */
+  function initFilm() {
+    var canvas = document.getElementById('filmCanvas');
+    var replayBtn = document.getElementById('filmReplay');
+    if (!canvas || !canvas.getContext) return;
+    if (reduceMotion) return; // 静帧降级由 CSS 呈现
+
+    var ctx = canvas.getContext('2d');
+    var DW = 800, DH = 400;
+    var TOTAL = 11.0;
+    var T_TYPE = 3.4;
+    var T_DETACH0 = 3.6, T_DETACH1 = 5.0;
+    var T_CONV0 = 5.9, T_CONV1 = 8.3;
+    var T_SOL0 = 8.3, T_SOL1 = 9.5;
+    var T_MOR0 = 9.6, T_MOR1 = 11.0;
+
+    var INK = '#111111';
+    var ACCENT = '#0e7a45';
+    var GLYPHS = '!@#$%^&*()[]{}<>/\\|~+=';
+
+    var CODE_LINES = [
+      'function decrypt(key, payload) {',
+      '  let out = 0;',
+      '  for (const b of payload) {',
+      '    out = (out << 5) ^ b ^ key;',
+      '  }',
+      '  return out >>> 0;',
+      '}',
+      'const token = decrypt(0x5f, secret);'
+    ];
+
+    var cssW = 0, cssH = 0, DPR = 1, vscale = 1, offX = 0, offY = 0;
+    var particles = [], stream = [];
+    var elapsed = 0, playing = false, hasAutoPlayed = false, finished = false;
+    var rafId = null, lastTs = null;
+
+    function clamp01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+    function easeOut(x) { return 1 - Math.pow(1 - x, 3); }
+    function objScale() { return cssW < 640 ? 1.45 : 1; }
+    function randGlyph() { return GLYPHS.charAt((Math.random() * GLYPHS.length) | 0); }
+    function codeFont() { return (cssW < 640 ? 21 : 14) + 'px monospace'; }
+
+    function roundRectPath(c, x, y, w, h, r) {
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + h, r);
+      c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    }
+
+    function drawLockShape(c) {
+      var k = objScale();
+      c.save();
+      c.translate(400, 208); c.scale(k, k); c.translate(-400, -208);
+      c.strokeStyle = '#ffffff'; c.fillStyle = '#ffffff';
+      c.lineWidth = 9; c.lineCap = 'round';
+      roundRectPath(c, 320, 175, 160, 115, 12);
+      c.stroke();
+      c.beginPath(); c.arc(400, 178, 52, Math.PI, Math.PI * 2); c.stroke();
+      c.beginPath(); c.arc(400, 224, 13, 0, Math.PI * 2); c.fill();
+      c.fillRect(394, 230, 12, 24);
+      c.restore();
+    }
+
+    function drawAnyShape(c) {
+      var k = objScale();
+      c.save();
+      c.translate(400, 210); c.scale(k, k); c.translate(-400, -210);
+      c.fillStyle = '#ffffff';
+      c.font = 'bold 150px sans-serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'alphabetic';
+      c.fillText('Any', 400, 230);
+      c.restore();
+    }
+
+    function samplePoints(drawFn, count) {
+      var oc = document.createElement('canvas');
+      oc.width = DW; oc.height = DH;
+      var c = oc.getContext('2d');
+      drawFn(c);
+      var data = c.getImageData(0, 0, DW, DH).data;
+      var pts = [];
+      for (var y = 0; y < DH; y += 2) {
+        for (var x = 0; x < DW; x += 2) {
+          if (data[(y * DW + x) * 4 + 3] > 60) pts.push({ x: x, y: y });
+        }
+      }
+      for (var i = pts.length - 1; i > 0; i--) {
+        var j = (Math.random() * (i + 1)) | 0;
+        var tmp = pts[i]; pts[i] = pts[j]; pts[j] = tmp;
+      }
+      var out = [];
+      for (var n = 0; n < count; n++) out.push(pts[n % pts.length]);
+      return out;
+    }
+
+    function buildScene() {
+      ctx.font = codeFont();
+      var cw = ctx.measureText('M').width;
+      var fsize = cssW < 640 ? 21 : 14;
+      var lh = Math.round(fsize * 1.8);
+      var maxLen = 0;
+      for (var m = 0; m < CODE_LINES.length; m++) maxLen = Math.max(maxLen, CODE_LINES[m].length);
+      var x0 = (DW - maxLen * cw) / 2;
+      var y0 = (DH - CODE_LINES.length * lh) / 2;
+
+      stream = [];
+      var idxBase = [], acc = 0;
+      for (var s = 0; s < CODE_LINES.length; s++) {
+        idxBase.push(acc);
+        acc += CODE_LINES[s].length + 1;
+      }
+      var streamLen = acc;
+      for (var li = 0; li < CODE_LINES.length; li++) {
+        var line = CODE_LINES[li];
+        for (var ci = 0; ci <= line.length; ci++) {
+          stream.push({ x: x0 + ci * cw, y: y0 + li * lh + lh / 2 });
+        }
+      }
+
+      particles = [];
+      for (var li2 = 0; li2 < CODE_LINES.length; li2++) {
+        var line2 = CODE_LINES[li2];
+        for (var ci2 = 0; ci2 < line2.length; ci2++) {
+          var ch = line2.charAt(ci2);
+          if (ch === ' ') continue;
+          var px = x0 + ci2 * cw + cw / 2;
+          var py = y0 + li2 * lh + lh / 2;
+          var reveal = ((idxBase[li2] + ci2) / streamLen) * T_TYPE;
+          var spawn = Math.random() < 0.55 ? 2 : 1;
+          for (var sp = 0; sp < spawn; sp++) {
+            particles.push({
+              ch: ch,
+              reveal: reveal,
+              x0: px + (sp ? Math.random() * 4 - 2 : 0),
+              y0: py + (sp ? Math.random() * 4 - 2 : 0),
+              detach: T_DETACH0 + Math.random() * (T_DETACH1 - T_DETACH0),
+              ang: Math.random() * Math.PI * 2,
+              spd: 40 + Math.random() * 95,
+              lx: 0, ly: 0, tx: 0, ty: 0
+            });
+          }
+        }
+      }
+
+      var lockPts = samplePoints(drawLockShape, particles.length);
+      var textPts = samplePoints(drawAnyShape, particles.length);
+      for (var p = 0; p < particles.length; p++) {
+        particles[p].lx = lockPts[p].x;
+        particles[p].ly = lockPts[p].y;
+        particles[p].tx = textPts[p].x;
+        particles[p].ty = textPts[p].y;
+      }
+    }
+
+    function ballistic(p, t) {
+      var dt = t - p.detach;
+      if (dt < 0) dt = 0;
+      var vx = Math.cos(p.ang) * p.spd;
+      var vy = Math.sin(p.ang) * p.spd - 18;
+      var g = 85;
+      return { x: p.x0 + vx * dt, y: p.y0 + vy * dt + 0.5 * g * dt * dt };
+    }
+
+    function drawSolidLock(alpha, scale) {
+      if (alpha <= 0) return;
+      var k = objScale() * scale;
+      ctx.save();
+      ctx.translate(400, 208); ctx.scale(k, k); ctx.translate(-400, -208);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = INK; ctx.fillStyle = INK;
+      ctx.lineWidth = 6; ctx.lineCap = 'round';
+      roundRectPath(ctx, 320, 175, 160, 115, 12);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(400, 178, 52, Math.PI, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(400, 224, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(394, 230, 12, 24);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawEnding(anyA, subA) {
+      var k = objScale();
+      ctx.save();
+      ctx.translate(400, 210); ctx.scale(k, k); ctx.translate(-400, -210);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.globalAlpha = anyA;
+      ctx.fillStyle = INK;
+      ctx.font = 'bold 150px sans-serif';
+      ctx.fillText('Any', 400, 230);
+      var w = ctx.measureText('Any').width;
+      ctx.fillStyle = ACCENT;
+      ctx.fillRect(400 + w / 2 + 14, 203, 15, 27);
+      if (subA > 0) {
+        ctx.globalAlpha = subA;
+        ctx.fillStyle = '#d8d8d8';
+        ctx.fillRect(400 - 48, 253, 96, 1);
+        ctx.fillStyle = '#777777';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('混  混淆器'.replace('混淆器', '淆  器'), 400, 288);
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    function render(t) {
+      ctx.setTransform(DPR * vscale, 0, 0, DPR * vscale, DPR * offX, DPR * offY);
+      ctx.clearRect(0, 0, DW, DH);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = 1;
+      if (!particles.length) return;
+
+      var i, p, b, x, y;
+
+      if (t < T_TYPE) {
+        var fsize = cssW < 640 ? 21 : 14;
+        ctx.font = codeFont();
+        for (i = 0; i < particles.length; i++) {
+          p = particles[i];
+          if (t >= p.reveal) {
+            ctx.globalAlpha = 0.95; ctx.fillStyle = INK;
+            ctx.fillText(p.ch, p.x0, p.y0);
+          }
+        }
+        if (stream.length) {
+          var ci = Math.min(stream.length - 1, Math.floor((t / T_TYPE) * stream.length));
+          var cp = stream[ci];
+          ctx.globalAlpha = 0.8; ctx.fillStyle = INK;
+          ctx.fillRect(cp.x, cp.y - fsize * 0.6, fsize * 0.62, fsize * 1.15);
+        }
+        ctx.globalAlpha = 1;
+        return;
+      }
+
+      if (t < T_CONV0) {
+        ctx.font = codeFont();
+        for (i = 0; i < particles.length; i++) {
+          p = particles[i];
+          if (t < p.detach) {
+            var g = Math.random() < 0.22 ? randGlyph() : p.ch;
+            ctx.globalAlpha = 0.95; ctx.fillStyle = INK;
+            ctx.fillText(g, p.x0 + (Math.random() * 3 - 1.5), p.y0 + (Math.random() * 3 - 1.5));
+          } else {
+            b = ballistic(p, t);
+            ctx.globalAlpha = 0.9; ctx.fillStyle = INK;
+            ctx.fillText(p.ch, b.x, b.y);
+          }
+        }
+        ctx.globalAlpha = 1;
+        return;
+      }
+
+      if (t < T_SOL0) {
+        ctx.font = codeFont();
+        var q = easeInOut(clamp01((t - T_CONV0) / (T_CONV1 - T_CONV0)));
+        for (i = 0; i < particles.length; i++) {
+          p = particles[i];
+          b = ballistic(p, t);
+          x = b.x + (p.lx - b.x) * q;
+          y = b.y + (p.ly - b.y) * q;
+          var ga = (1 - clamp01(q / 0.55)) * 0.9;
+          var da = clamp01((q - 0.2) / 0.6) * 0.9;
+          if (ga > 0) {
+            ctx.globalAlpha = ga; ctx.fillStyle = INK;
+            ctx.fillText(p.ch, x, y);
+          }
+          if (da > 0) {
+            ctx.globalAlpha = da; ctx.fillStyle = INK;
+            ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 1;
+        return;
+      }
+
+      if (t < T_MOR0) {
+        var s = clamp01((t - T_SOL0) / (T_SOL1 - T_SOL0));
+        var dotA = (1 - easeOut(clamp01(s * 1.6))) * 0.9;
+        if (dotA > 0) {
+          ctx.fillStyle = INK;
+          for (i = 0; i < particles.length; i++) {
+            p = particles[i];
+            ctx.globalAlpha = dotA;
+            ctx.beginPath(); ctx.arc(p.lx, p.ly, 2.2 - clamp01(s) * 0.7, 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        }
+        drawSolidLock(clamp01((s - 0.12) / 0.55), 0.96 + 0.04 * easeOut(s));
+        return;
+      }
+
+      var m = easeInOut(clamp01((t - T_MOR0) / (T_MOR1 - T_MOR0)));
+      drawSolidLock(1 - clamp01(m * 1.7), 1 + 0.12 * m);
+      var endFade = 1 - clamp01((m - 0.86) / 0.14);
+      if (endFade > 0) {
+        ctx.fillStyle = INK;
+        for (i = 0; i < particles.length; i++) {
+          p = particles[i];
+          x = p.lx + (p.tx - p.lx) * m;
+          y = p.ly + (p.ty - p.ly) * m;
+          ctx.globalAlpha = 0.9 * endFade;
+          ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+      var anyA = clamp01((m - 0.5) / 0.5);
+      if (anyA > 0) drawEnding(anyA, clamp01((m - 0.72) / 0.28));
+    }
+
+    function drawFinalFrame() {
+      ctx.setTransform(DPR * vscale, 0, 0, DPR * vscale, DPR * offX, DPR * offY);
+      ctx.clearRect(0, 0, DW, DH);
+      drawEnding(1, 1);
+    }
+
+    function frame(ts) {
+      if (!playing) return;
+      if (lastTs === null) lastTs = ts;
+      var dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+      if (dt > 0.05) dt = 0.05;
+      elapsed += dt;
+      if (elapsed >= TOTAL) {
+        elapsed = TOTAL;
+        render(TOTAL);
+        playing = false;
+        finished = true;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        return;
+      }
+      render(elapsed);
+      rafId = requestAnimationFrame(frame);
+    }
+
+    function startPlay() {
+      buildScene();
+      elapsed = 0;
+      finished = false;
+      playing = true;
+      lastTs = null;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(frame);
+    }
+    function pausePlay() {
+      playing = false;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      lastTs = null;
+    }
+    function resumePlay() {
+      if (finished || playing) return;
+      playing = true;
+      lastTs = null;
+      rafId = requestAnimationFrame(frame);
+    }
+
+    function fit() {
+      var rect = canvas.getBoundingClientRect();
+      if (rect.width < 2) return;
+      cssW = rect.width;
+      cssH = rect.height;
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(cssW * DPR);
+      canvas.height = Math.round(cssH * DPR);
+      vscale = Math.min(cssW / DW, cssH / DH);
+      offX = (cssW - DW * vscale) / 2;
+      offY = (cssH - DH * vscale) / 2;
+      if (finished) drawFinalFrame();
+      else if (hasAutoPlayed) render(Math.min(elapsed, TOTAL));
+    }
+    fit();
+    window.addEventListener('resize', fit);
+
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].isIntersecting) {
+            if (!hasAutoPlayed) {
+              hasAutoPlayed = true;
+              startPlay();
+            } else {
+              resumePlay();
+            }
+          } else {
+            pausePlay();
+          }
+        }
+      }, { threshold: 0.35 });
+      io.observe(canvas);
+    } else {
+      hasAutoPlayed = true;
+      startPlay();
+    }
+
+    if (replayBtn) {
+      replayBtn.addEventListener('click', function () {
+        hasAutoPlayed = true;
+        startPlay();
+      });
+    }
+  }
+
+  /* ---------- 果冻按钮绑定（含彩蛋） ---------- */
+  function initEggs() {
+    var logo = document.getElementById('logoBtn');
+    if (logo) {
+      var clicks = 0, last = 0, busy = false;
+      var MSG = '成就解锁：连点 Logo ×5。就凭这份逆向的执着，建议直接拿下商业版。';
+      logo.addEventListener('click', function () {
+        var now = Date.now();
+        if (now - last > 900) clicks = 0;
+        last = now;
+        clicks++;
+        if (clicks < 5) return;
+        clicks = 0;
+        if (busy) return;
+        if (reduceMotion) { showToast(MSG); return; }
+        busy = true;
+        var orig = logo.textContent;
+        var GL = '!@#$%^&*<>?/\\|~+=';
+        var n = 0;
+        var iv = setInterval(function () {
+          n++;
+          if (n > 12) {
+            clearInterval(iv);
+            logo.textContent = orig;
+            busy = false;
+            showToast(MSG);
+            return;
+          }
+          var s = '';
+          for (var i = 0; i < orig.length; i++) {
+            var ch = orig.charAt(i);
+            s += (ch === ' ' || Math.random() < 0.45) ? ch : GL.charAt((Math.random() * GL.length) | 0);
+          }
+          logo.textContent = s;
+        }, 55);
+      });
+    }
+
+    /* 所有带 data-jelly 的按钮：点击时果冻脉冲 */
+    var jellyBtns = document.querySelectorAll('[data-jelly]');
+    Array.prototype.forEach.call(jellyBtns, function (btn) {
+      btn.addEventListener('click', function () {
+        jellyPulse(btn);
+      });
+    });
+  }
+
+  initNav();
+  initDemo();
+  initJellyReveal();
+  initFilm();
+  initEggs();
+
+  /* ---------- 控制台彩蛋 ---------- */
+  console.log(
+    ' █████  █     █ █     █\n' +
+    '█     █ ██    █  █   █ \n' +
+    '███████ █ █   █   █ █  \n' +
+    '█     █ █  █  █    █   \n' +
+    '█     █ █   █ █    █   \n' +
+    '\n' +
+    'Any 混淆器 · 你在控制台里找什么？源代码不在这。—— kboxcbh'
+  );
+})();
+</script>
+</body>
+</html>
